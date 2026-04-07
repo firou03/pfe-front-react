@@ -1,152 +1,246 @@
-import React from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
 
-// components
+import {
+  getAllUsers,
+  deleteUser,
+  addUser,
+  updateUser,
+} from "../../service/restApiUser";
 
-import TableDropdown from "components/Dropdowns/TableDropdown.js";
-import {deleteUser , getAllUsers } from "../../service/restApiUser";
 export default function CardTable({ color }) {
-  const [users, setUsers] = React.useState([]);
+  const [users, setUsers] = useState([]);
+  const [newUserData, setNewUserData] = useState({
+    email: "",
+    password: "",
+    role: "",
+    age: "",
+    location: "",
+    name: "",
+  });
 
-  const fetchUsers = async () => {
+  // ✅ GET USERS
+  const getUsers = useCallback(async () => {
     try {
-      const response = await getAllUsers();
-      console.log("Users fetched successfully:", response.data); // Log the fetched users
-      setUsers(response.data);
+      const res = await getAllUsers();
+      setUsers(res.data.data || []);
     } catch (error) {
       console.error("Error fetching users:", error);
     }
-      }
-  React.useEffect(() => {
-    fetchUsers();
   }, []);
+
+  useEffect(() => {
+    getUsers();
+  }, [getUsers]);
+
+  // ✅ INPUT CHANGE
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewUserData({ ...newUserData, [name]: value });
+  };
+
+  // ✅ ADD USER
+  const handleAddUser = async () => {
+    try {
+      await addUser(newUserData);
+      getUsers();
+      setNewUserData({
+        email: "",
+        password: "",
+        role: "",
+        age: "",
+        localistion: "",
+        name: "",
+      });
+    } catch (error) {
+      console.error("Error adding user:", error);
+    }
+  };
+
+  // ✅ DELETE USER
+  const handleDelete = async (id) => {
+    try {
+      await deleteUser(id);
+      getUsers();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
+  // ✅ UPDATE USER
+  const handleUpdateUser = async () => {
+    try {
+      await updateUser(newUserData._id, newUserData);
+      getUsers();
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
   return (
     <>
+      {/* TABLE */}
       <div
         className={
-          "relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded " +
+          "relative flex flex-col w-full mb-6 shadow-lg rounded " +
           (color === "light" ? "bg-white" : "bg-lightBlue-900 text-white")
         }
       >
-        <div className="rounded-t mb-0 px-4 py-3 border-0">
-          <div className="flex flex-wrap items-center">
-            <div className="relative w-full px-4 max-w-full flex-grow flex-1">
-              <h3
-                className={
-                  "font-semibold text-lg " +
-                  (color === "light" ? "text-blueGray-700" : "text-white")
-                }
-              >
-                Liste des utilisateurs
-              </h3>
-            </div>
-          </div>
+        <div className="px-4 py-3">
+          <h3
+            className={
+              "font-semibold text-lg " +
+              (color === "light" ? "text-blueGray-700" : "text-white")
+            }
+          >
+            Liste des utilisateurs
+          </h3>
         </div>
-        <div className="block w-full overflow-x-auto">
-          {/* Projects table */}
-          <table className="items-center w-full bg-transparent border-collapse">
+
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
             <thead>
               <tr>
-                <th
-                  className={
-                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                    (color === "light"
-                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                  }
-                >
-                  Nom
-                </th>
-                <th
-                  className={
-                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                    (color === "light"
-                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                  }
-                >
-                  Email
-                </th>
-                <th
-                  className={
-                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                    (color === "light"
-                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                  }
-                >
-                  Role
-                </th>
-                <th
-                  className={
-                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                    (color === "light"
-                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                  }
-                >
-                  Creation date
-                </th>
-                <th
-                  className={
-                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                    (color === "light"
-                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                  }
-                >
-                  Action
-                </th>
-                <th
-                  className={
-                    "px-6 align-middle border border-solid py-3 text-xs uppercase border-l-0 border-r-0 whitespace-nowrap font-semibold text-left " +
-                    (color === "light"
-                      ? "bg-blueGray-50 text-blueGray-500 border-blueGray-100"
-                      : "bg-lightBlue-800 text-lightBlue-300 border-lightBlue-700")
-                  }
-                ></th>
+                <th>Nom</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Date</th>
+                <th>Action</th>
               </tr>
             </thead>
+
             <tbody>
-              <tr>
-                <th className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4 text-left flex items-center">
-                  <img
-                    src={require("assets/img/bootstrap.jpg").default}
-                    className="h-12 w-12 bg-white rounded-full border"
-                    alt="..."
-                  ></img>{" "}
-                  <span
-                    className={
-                      "ml-3 font-bold " +
-                      +(color === "light" ? "text-blueGray-600" : "text-white")
-                    }
-                  >
-                    nom des utlisateurs
-                  </span>
-                </th>
-                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                  email
-                </td>
-                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                  <i className="fas fa-circle text-orange-500 mr-2"></i> role
-                </td>
-                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                  14/04/2026
-                </td>
-                <td className="border-t-0 px-6 align-middle border-l-0 border-r-0 text-xs whitespace-nowrap p-4">
-                  <button className="bg-lightBlue-500 text-white active:bg-lightBlue-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150" type="button">
-                     ajouter
-                  </button>
-                  <button className="bg-red-700 text-white active:bg-lightBlue-600 font-bold uppercase text-xs px-4 py-2 rounded shadow hover:shadow-md outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150" type="button">
-                    supprimer
-                  </button>
-                </td>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="5">Aucun utilisateur trouvé</td>
+                </tr>
+              ) : (
+                users.map((user, index) => (
+                  <tr key={user._id || index}>
+                    <td className="p-4 flex items-center">
+                      <img
+                        src={`http://localhost:5000/images/${user.user_image}`}
+                        className="h-12 w-12 rounded-full border"
+                        alt="user"
+                      />
+                      <span className="ml-3 font-bold">
+                        {user.name || "No Name"}
+                      </span>
+                    </td>
 
+                    <td>{user.email}</td>
+                    <td>{user.role}</td>
+                    <td>
+                      {user.createdAt
+                        ? new Date(user.createdAt).toLocaleDateString()
+                        : ""}
+                    </td>
 
-              </tr>
-
+                    <td>
+                      <button
+                        onClick={() => handleDelete(user._id)}
+                        className="bg-red-500 text-white active:bg-red-600 font-bold uppercase text-base px-8 py-3 rounded shadow-md hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                      >
+                        Supprimer
+                      </button>
+                    </td>
+                    <td>
+                      <button
+                        onClick={() => handleUpdateUser(user._id)}
+                        className="bg-lightBlue-500 text-white active:bg-lightBlue-600 font-bold uppercase text-base px-8 py-3 rounded shadow-md hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+                      >
+                        Modifier
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      {/* FORM */}
+      <div className="mt-6">
+        <h2 className="text-xl font-bold text-lightBlue-600">
+          Add New User
+        </h2>
+
+        <div className="mb-3 pt-0">
+          <input
+            type="text"
+            placeholder="Name"
+            className="px-3 py-2 mr-2 border rounded"
+            onChange={handleInputChange}
+            value={newUserData.name}
+            name="name"
+          />
+
+          <select
+            name="role"
+            value={newUserData.role}
+            onChange={handleInputChange}
+            className="px-3 py-2 mr-2 border rounded"
+          >
+            <option value="">Choisir un rôle</option>
+            <option value="client">Client</option>
+            <option value="transporteur">Transporteur</option>
+          </select>
+          <input
+            type="text"
+            placeholder="localisation"
+            className="px-3 py-2 mr-2 border rounded"
+            onChange={handleInputChange}
+            value={newUserData.location}
+            name="location"
+          />
+
+          <input
+            type="email"
+            placeholder="Email"
+            className="px-3 py-2 mr-2 border rounded"
+            onChange={handleInputChange}
+            value={newUserData.email}
+            name="email"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            className="px-3 py-2 mr-2 border rounded"
+            onChange={handleInputChange}
+            value={newUserData.password}
+            name="password"
+          />
+
+          <div className="mt-3">
+            <button
+              className="bg-purple-500 mt-2 text-white active:bg-lightBlue-600 font-bold uppercase text-sm px-6 py-3 rounded-lg shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+              type="button"
+              onClick={handleAddUser}
+            >
+              Add User
+            </button>
+             <button
+            className="bg-lightBlue-500 text-white active:bg-lightBlue-600 font-bold uppercase text-sm px-6 py-3 rounded-lg shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+            type="button"
+            onClick={() => {
+              handleUpdateUser();
+            }}
+          >
+            update
+          </button>
+
+
+
+
+            <button
+              className="bg-red-500 mt-2 text-white active:bg-lightBlue-600 font-bold uppercase text-sm px-6 py-3 rounded-lg shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
+              type="button"
+            >
+              cancel
+            </button>
+          </div>
         </div>
       </div>
     </>

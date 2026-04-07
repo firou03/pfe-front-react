@@ -29,6 +29,7 @@ ReactDOM.render(
       {/* add redirect for first page */}
       <Redirect from="*" to="/" />
     </Switch>
+    
   </BrowserRouter>,
   document.getElementById("root")
 );
