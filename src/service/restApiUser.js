@@ -20,6 +20,7 @@ const API_URL = 'http://localhost:5000/Users';
 //delete => supprimer des données
 
 //get all users
+
 export async function getAllUsers() {
     return await axio.get(`${API_URL}/getAllUsers`);    
 }
