@@ -1,8 +1,41 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { registerUser } from "../../service/restApiUser"; // ✅ IMPORT API
 
 export default function Register() {
-  
+
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "client",
+  });
+
+  // handle input
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
+
+  // handle submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await registerUser(formData);
+      alert("Compte créé ✅");
+
+      // redirect to login
+      window.location.href = "/auth/login";
+
+    } catch (error) {
+      console.error(error);
+      alert("Erreur inscription ❌");
+    }
+  };
+
+
   return (
     <>
       <div className="container mx-auto px-4 h-full">
@@ -45,7 +78,7 @@ export default function Register() {
                 <div className="text-blueGray-400 text-center mb-3 font-bold">
                   <small>Or sign up with credentials</small>
                 </div>
-                <form>
+                <form onSubmit={handleSubmit}>
                   <div className="relative w-full mb-3">
                     <label
                       className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
@@ -54,9 +87,11 @@ export default function Register() {
                       Name
                     </label>
                     <input
-                      type="email"
-                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                      placeholder="Name"
+
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
                     />
                   </div>
 
@@ -69,8 +104,9 @@ export default function Register() {
                     </label>
                     <input
                       type="email"
-                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                      placeholder="Email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
                     />
                   </div>
 
@@ -83,9 +119,26 @@ export default function Register() {
                     </label>
                     <input
                       type="password"
-                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                      placeholder="Password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+
                     />
+                  </div>
+                  {/* 🔥 ROLE SELECT */}
+                  <div className="relative w-full mb-3">
+                    <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                      Role
+                    </label>
+                    <select
+                      name="role"
+                      value={formData.role}
+                      onChange={handleChange}
+                      className="border-0 px-3 py-3 bg-white rounded text-sm shadow w-full"
+                    >
+                      <option value="client">Client</option>
+                      <option value="transporteur">Transporteur</option>
+                    </select>
                   </div>
 
                   <div>
@@ -110,8 +163,9 @@ export default function Register() {
 
                   <div className="text-center mt-6">
                     <button
+                      type="submit"
                       className="bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
-                      type="button"
+
                     >
                       Create Account
                     </button>
@@ -121,7 +175,7 @@ export default function Register() {
             </div>
             <div className="flex flex-wrap mt-6 relative">
               <div className="w-1/2">
-                <Link 
+                <Link
                   to="/auth/forget"
                   className="text-blueGray-200"
                 >
