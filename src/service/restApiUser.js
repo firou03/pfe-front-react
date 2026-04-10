@@ -2,6 +2,7 @@ import axios from "axios";
 
 const API_URL = "http://localhost:5000/users";
 
+
 // REGISTER
 export const registerUser = (data) => {
   return axios.post(`${API_URL}/CreateUser`, data);
@@ -9,7 +10,7 @@ export const registerUser = (data) => {
 
 // LOGIN
 export const loginUser = (data) => {
-  return axios.post("http://localhost:5000/api/auth/login", data);
+  return axios.post(`${API_URL}/login`, data);
 };
 
 // GET USERS
