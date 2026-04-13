@@ -10,7 +10,7 @@ export const registerUser = (data) => {
 
 // LOGIN
 export const loginUser = (data) => {
-  return axios.post(`${API_URL}/login`, data);
+  return axios.post("http://localhost:5000/api/auth/login", data);
 };
 
 // GET USERS

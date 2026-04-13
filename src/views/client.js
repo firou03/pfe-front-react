@@ -1,7 +1,16 @@
-import React, { useState } from "react";
-import { createTransportRequest } from "../../service/restApiTransport"; // ✅ IMPORT API
+import React, { useState, useRef ,useEffect } from "react";
+import { createTransportRequest } from "service/restApiTransport"; // ✅ IMPORT API
+import Navbar from "components/Navbars/AuthNavbar.js";
+import Footer from "components/Footers/Footer.js";
 
 export default function CardClient() {
+   const isMounted = useRef(true); // ✅ ajoute ça
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false; // ✅ cleanup au unmount
+    };
+  }, []);
 
   const [formData, setFormData] = useState({
     pickupLocation: "",
@@ -37,11 +46,15 @@ export default function CardClient() {
 
     } catch (error) {
       console.error(error);
-      alert("Erreur lors de l'envoi ❌");
+       if (isMounted.current) { // ✅ vérifie avant setState
+        alert("Erreur lors de l'envoi ❌");
+      }
     }
   };
 
   return (
+     <>
+          <Navbar transparent />
     <div className="flex justify-center items-center min-h-screen bg-blueGray-100">
 
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-xl p-8">
@@ -164,5 +177,7 @@ export default function CardClient() {
         </form>
       </div>
     </div>
+     <Footer />
+        </>
   );
 }
