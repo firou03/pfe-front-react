@@ -23,22 +23,18 @@ export default function Index() {
                 .
               </p>
               <div className="mt-12">
-                <a
-                  to="/register"
-                  target="_blank"
-                  className="get-started text-white font-bold px-6 py-4 rounded outline-none focus:outline-none mr-1 mb-1 bg-lightBlue-500 active:bg-lightBlue-600 uppercase text-sm shadow hover:shadow-lg ease-linear transition-all duration-150"
-                >
-
-                  S'inscrire
-                </a>
-                <a
-                  to="/login"
-
-                  className="github-star ml-1 text-white font-bold px-6 py-4 rounded outline-none focus:outline-none mr-1 mb-1 bg-blueGray-700 active:bg-blueGray-600 uppercase text-sm shadow hover:shadow-lg ease-linear transition-all duration-150"
-                  target="_blank"
-                >
-                  Se connecter
-                </a>
+                <Link
+  to="/auth/register"
+  className="get-started text-white font-bold px-6 py-4 rounded outline-none focus:outline-none mr-1 mb-1 bg-lightBlue-500 active:bg-lightBlue-600 uppercase text-sm shadow hover:shadow-lg ease-linear transition-all duration-150"
+>
+  S'inscrire
+</Link>
+<Link
+  to="/auth/login"
+  className="github-star ml-1 text-white font-bold px-6 py-4 rounded outline-none focus:outline-none mr-1 mb-1 bg-blueGray-700 active:bg-blueGray-600 uppercase text-sm shadow hover:shadow-lg ease-linear transition-all duration-150"
+>
+  Se connecter
+</Link>
               </div>
             </div>
           </div>
@@ -46,7 +42,7 @@ export default function Index() {
 
         <img
           className="absolute top-0 b-auto right-0 pt-16 sm:w-6/12 -mt-48 sm:mt-0 w-10/12 max-h-860px"
-          src={require("assets/img/pattern_react.png").default}
+          src={require("assets/img/tunisiemaps.png").default}
           alt="..."
         />
       </section>

@@ -39,9 +39,9 @@ export default function Landing() {
                     Votre parcours commence ici
                   </h1>
                   <p className="mt-4 text-lg text-blueGray-200">
-                 Cette plateforme offre une solution moderne pour la gestion des demandes de transport.
-                 Elle permet aux utilisateurs de créer des demandes, de suivre leur état et de collaborer
-                 avec les transporteurs grâce à un système simple, rapide et sécurisé.
+                    Cette plateforme offre une solution moderne pour la gestion des demandes de transport.
+                    Elle permet aux utilisateurs de créer des demandes, de suivre leur état et de collaborer
+                    avec les transporteurs grâce à un système simple, rapide et sécurisé.
                   </p>
                 </div>
               </div>
@@ -75,12 +75,12 @@ export default function Landing() {
                 <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg">
                   <div className="px-4 py-5 flex-auto">
                     <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow-lg rounded-full bg-red-400">
-                   <MdSettingsSuggest />
+                      <MdSettingsSuggest />
                     </div>
                     <h6 className="text-xl font-semibold">Gestion des demandes</h6>
                     <p className="mt-2 mb-4 text-blueGray-500">
-                    Créez et gérez toutes vos demandes de transport en quelques clics.
-de transport
+                      Créez et gérez toutes vos demandes de transport en quelques clics.
+                      de transport
                     </p>
                   </div>
                 </div>
@@ -90,7 +90,7 @@ de transport
                 <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg">
                   <div className="px-4 py-5 flex-auto">
                     <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow-lg rounded-full bg-lightBlue-400">
-                     <RiChatFollowUpFill />
+                      <RiChatFollowUpFill />
                     </div>
                     <h6 className="text-xl font-semibold">Suivi en temps réel</h6>
                     <p className="mt-2 mb-4 text-blueGray-500">
@@ -104,11 +104,11 @@ de transport
                 <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg">
                   <div className="px-4 py-5 flex-auto">
                     <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow-lg rounded-full bg-emerald-400">
-                <MdSecurity />
+                      <MdSecurity />
                     </div>
                     <h6 className="text-xl font-semibold">Plateforme sécurisée</h6>
                     <p className="mt-2 mb-4 text-blueGray-500">
-                    Vos données sont protégées grâce à un système fiable et sécurisé.
+                      Vos données sont protégées grâce à un système fiable et sécurisé.
                     </p>
                   </div>
                 </div>
@@ -216,7 +216,7 @@ de transport
                       <div className="flex items-center">
                         <div>
                           <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-lightBlue-600 bg-lightBlue-200 mr-3">
-                           <MdOutlineSettingsSuggest />
+                            <MdOutlineSettingsSuggest />
                           </span>
                         </div>
                         <div>
@@ -230,7 +230,7 @@ de transport
                       <div className="flex items-center">
                         <div>
                           <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-lightBlue-600 bg-lightBlue-200 mr-3">
-                       <RiChatFollowUpFill />
+                            <RiChatFollowUpFill />
                           </span>
                         </div>
                         <div>
@@ -244,12 +244,12 @@ de transport
                       <div className="flex items-center">
                         <div>
                           <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-lightBlue-600 bg-lightBlue-200 mr-3">
-                           <FcCollaboration />
+                            <FcCollaboration />
                           </span>
                         </div>
                         <div>
                           <h4 className="text-blueGray-500">
-                           Collaboration avec les transporteurs
+                            Collaboration avec les transporteurs
                           </h4>
                         </div>
                       </div>
@@ -261,7 +261,7 @@ de transport
           </div>
         </section>
 
-     
+
 
         <section className="pb-20 relative block bg-blueGray-800">
           <div
@@ -288,7 +288,7 @@ de transport
             <div className="flex flex-wrap text-center justify-center">
               <div className="w-full lg:w-6/12 px-4">
                 <h2 className="text-4xl font-semibold text-white">
-                Optimisez votre gestion de transport
+                  Optimisez votre gestion de transport
                 </h2>
                 <p className="text-lg leading-relaxed mt-4 mb-4 text-blueGray-400">
                   Notre plateforme vous permet de gérer efficacement vos demandes de transport,
@@ -303,7 +303,7 @@ de transport
                   <i className="fas fa-medal text-xl"></i>
                 </div>
                 <h6 className="text-xl mt-5 font-semibold text-white">
-                 Services de transport efficaces
+                  Services de transport efficaces
                 </h6>
                 <p className="mt-2 mb-4 text-blueGray-400">
                   Nous offrons des solutions fiables pour la gestion des demandes de transport,
@@ -315,7 +315,7 @@ de transport
                   <i className="fas fa-poll text-xl"></i>
                 </div>
                 <h5 className="text-xl mt-5 font-semibold text-white">
-                 Développez votre réseau
+                  Développez votre réseau
                 </h5>
                 <p className="mt-2 mb-4 text-blueGray-400">
                   Augmentez vos opportunités en connectant clients et transporteurs
@@ -327,8 +327,8 @@ de transport
                   <i className="fas fa-lightbulb text-xl"></i>
                 </div>
                 <h5 className="text-xl mt-5 font-semibold text-white">
-                 Mise en service rapide               
-               </h5>
+                  Mise en service rapide
+                </h5>
                 <p className="mt-2 mb-4 text-blueGray-400">
                   Profitez d’une plateforme rapide à déployer, permettant de gérer
                   vos opérations de transport efficacement dès le premier jour.
