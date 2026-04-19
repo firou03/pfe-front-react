@@ -18,9 +18,9 @@ export default function Landing() {
     <>
       <Navbar transparent />
       <main>
-        <div className="relative pt-16 pb-32 flex content-center items-center justify-center min-h-screen-75">
+        <div className="relative pt-20 pb-36 flex content-center items-center justify-center min-h-screen">
           <div
-            className="absolute top-2000 w-full h-full bg-center bg-cover"
+            className="absolute top-0 w-full h-full bg-center bg-cover"
             style={{
               backgroundImage:
                 "url('https://www.shutterstock.com/shutterstock/videos/3838456741/thumb/10.jpg?ip=x480')",
@@ -28,21 +28,35 @@ export default function Landing() {
           >
             <span
               id="blackOverlay"
-              className="w-full h-full absolute opacity-75 bg-black"
+              className="w-full h-full absolute opacity-70 bg-blueGray-900"
             ></span>
           </div>
-          <div className="container relative mx-auto">
+          <div className="container relative mx-auto px-4">
             <div className="items-center flex flex-wrap">
-              <div className="w-full lg:w-6/12 px-4 ml-auto mr-auto text-center">
-                <div className="pr-12">
-                  <h1 className="text-white font-semibold text-5xl">
+              <div className="w-full lg:w-8/12 px-4 ml-auto mr-auto text-center">
+                <div>
+                  <h1 className="text-white font-semibold text-5xl md:text-6xl leading-tight">
                     Votre parcours commence ici
                   </h1>
-                  <p className="mt-4 text-lg text-blueGray-200">
+                  <p className="mt-5 text-lg md:text-xl text-blueGray-200 max-w-3xl mx-auto leading-relaxed">
                     Cette plateforme offre une solution moderne pour la gestion des demandes de transport.
                     Elle permet aux utilisateurs de créer des demandes, de suivre leur état et de collaborer
                     avec les transporteurs grâce à un système simple, rapide et sécurisé.
                   </p>
+                  <div className="mt-8 flex flex-wrap justify-center gap-3">
+                    <Link
+                      to="/auth/register"
+                      className="bg-lightBlue-500 hover:bg-lightBlue-600 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition-all duration-200"
+                    >
+                      Créer un compte
+                    </Link>
+                    <Link
+                      to="/auth/login"
+                      className="bg-white/10 hover:bg-white/20 text-white font-semibold px-6 py-3 rounded-lg border border-white/30 transition-all duration-200"
+                    >
+                      Se connecter
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -68,32 +82,31 @@ export default function Landing() {
           </div>
         </div>
 
-        <section className="pb-20 bg-blueGray-200 -mt-24">
+        <section className="pb-24 bg-blueGray-100 -mt-24">
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap">
               <div className="lg:pt-12 pt-6 w-full md:w-4/12 px-4 text-center">
-                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg">
-                  <div className="px-4 py-5 flex-auto">
-                    <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow-lg rounded-full bg-red-400">
+                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-md rounded-2xl border border-blueGray-100 hover:-translate-y-1 hover:shadow-xl transition-all duration-200">
+                  <div className="px-6 py-7 flex-auto">
+                    <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow rounded-full bg-red-400">
                       <MdSettingsSuggest />
                     </div>
                     <h6 className="text-xl font-semibold">Gestion des demandes</h6>
-                    <p className="mt-2 mb-4 text-blueGray-500">
+                    <p className="mt-2 mb-1 text-blueGray-500 leading-relaxed">
                       Créez et gérez toutes vos demandes de transport en quelques clics.
-                      de transport
                     </p>
                   </div>
                 </div>
               </div>
 
               <div className="w-full md:w-4/12 px-4 text-center">
-                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg">
-                  <div className="px-4 py-5 flex-auto">
-                    <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow-lg rounded-full bg-lightBlue-400">
+                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-md rounded-2xl border border-blueGray-100 hover:-translate-y-1 hover:shadow-xl transition-all duration-200">
+                  <div className="px-6 py-7 flex-auto">
+                    <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow rounded-full bg-lightBlue-400">
                       <RiChatFollowUpFill />
                     </div>
                     <h6 className="text-xl font-semibold">Suivi en temps réel</h6>
-                    <p className="mt-2 mb-4 text-blueGray-500">
+                    <p className="mt-2 mb-1 text-blueGray-500 leading-relaxed">
                       Suivez l’état de vos demandes et recevez des mises à jour en temps réel.
                     </p>
                   </div>
@@ -101,13 +114,13 @@ export default function Landing() {
               </div>
 
               <div className="pt-6 w-full md:w-4/12 px-4 text-center">
-                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-lg rounded-lg">
-                  <div className="px-4 py-5 flex-auto">
-                    <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow-lg rounded-full bg-emerald-400">
+                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-8 shadow-md rounded-2xl border border-blueGray-100 hover:-translate-y-1 hover:shadow-xl transition-all duration-200">
+                  <div className="px-6 py-7 flex-auto">
+                    <div className="text-white p-3 text-center inline-flex items-center justify-center w-12 h-12 mb-5 shadow rounded-full bg-emerald-400">
                       <MdSecurity />
                     </div>
                     <h6 className="text-xl font-semibold">Plateforme sécurisée</h6>
-                    <p className="mt-2 mb-4 text-blueGray-500">
+                    <p className="mt-2 mb-1 text-blueGray-500 leading-relaxed">
                       Vos données sont protégées grâce à un système fiable et sécurisé.
                     </p>
                   </div>
@@ -120,7 +133,7 @@ export default function Landing() {
                 <div className="text-blueGray-500 p-3 text-center inline-flex items-center justify-center w-16 h-16 mb-6 shadow-lg rounded-full bg-white">
                   <i className="fas fa-user-friends text-xl"></i>
                 </div>
-                <h3 className="text-3xl mb-2 font-semibold leading-normal">
+                <h3 className="text-3xl mb-2 font-semibold leading-normal text-blueGray-800">
                   Simplifiez votre gestion de transport
                 </h3>
                 <p className="text-lg font-light leading-relaxed mt-4 mb-4 text-blueGray-600">
@@ -131,13 +144,13 @@ export default function Landing() {
                   Grâce à un système moderne et intuitif, vous pouvez collaborer avec
                   les transporteurs et suivre l’état de vos livraisons en temps réel.
                 </p>
-                <Link to="/" className="font-bold text-blueGray-700 mt-8">
+                <Link to="/" className="inline-block font-bold text-lightBlue-600 mt-8">
                   Découvrir la plateforme
                 </Link>
               </div>
 
               <div className="w-full md:w-4/12 px-4 mr-auto ml-auto">
-                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-lg rounded-lg bg-lightBlue-500">
+                <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-2xl bg-lightBlue-500 overflow-hidden">
                   <img
                     alt="..."
                     src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1051&q=80"
@@ -170,7 +183,7 @@ export default function Landing() {
           </div>
         </section>
 
-        <section className="relative py-20">
+        <section className="relative py-24 bg-white">
           <div
             className="bottom-auto top-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden -mt-20 h-20"
             style={{ transform: "translateZ(0)" }}
@@ -263,7 +276,7 @@ export default function Landing() {
 
 
 
-        <section className="pb-20 relative block bg-blueGray-800">
+        <section className="pb-24 relative block bg-blueGray-900">
           <div
             className="bottom-auto top-0 left-0 right-0 w-full absolute pointer-events-none overflow-hidden -mt-20 h-20"
             style={{ transform: "translateZ(0)" }}
@@ -287,7 +300,7 @@ export default function Landing() {
           <div className="container mx-auto px-4 lg:pt-24 lg:pb-64">
             <div className="flex flex-wrap text-center justify-center">
               <div className="w-full lg:w-6/12 px-4">
-                <h2 className="text-4xl font-semibold text-white">
+                <h2 className="text-4xl font-semibold text-white leading-tight">
                   Optimisez votre gestion de transport
                 </h2>
                 <p className="text-lg leading-relaxed mt-4 mb-4 text-blueGray-400">
@@ -341,26 +354,25 @@ export default function Landing() {
           <div className="container mx-auto px-4">
             <div className="flex flex-wrap justify-center lg:-mt-64 -mt-48">
               <div className="w-full lg:w-6/12 px-4">
-                <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-200">
+                <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-2xl rounded-2xl bg-blueGray-200">
                   <div className="flex-auto p-5 lg:p-10">
-                    <h4 className="text-2xl font-semibold">
-                      Want to work with us?
+                    <h4 className="text-2xl font-semibold text-blueGray-800">
+                      Contactez-nous
                     </h4>
                     <p className="leading-relaxed mt-1 mb-4 text-blueGray-500">
-                      Complete this form and we will get back to you in 24
-                      hours.
+                      Remplissez ce formulaire et notre équipe vous répondra rapidement.
                     </p>
                     <div className="relative w-full mb-3 mt-8">
                       <label
                         className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
                         htmlFor="full-name"
                       >
-                        Full Name
+                        Nom complet
                       </label>
                       <input
                         type="text"
                         className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                        placeholder="Full Name"
+                        placeholder="Votre nom"
                       />
                     </div>
 
@@ -389,7 +401,7 @@ export default function Landing() {
                         rows="4"
                         cols="80"
                         className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full"
-                        placeholder="Type a message..."
+                        placeholder="Votre message..."
                       />
                     </div>
                     <div className="text-center mt-6">
@@ -397,7 +409,7 @@ export default function Landing() {
                         className="bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 ease-linear transition-all duration-150"
                         type="button"
                       >
-                        Send Message
+                        Envoyer le message
                       </button>
                     </div>
                   </div>

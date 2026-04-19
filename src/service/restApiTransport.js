@@ -31,3 +31,13 @@ export const acceptTransportRequest = (id) => {
 export const getMesRequests = () => {
   return axios.get(`${API_URL}/mes-requests`, { headers: headers() });
 };
+
+// GET client requests (if backend endpoint exists)
+export const getClientRequests = () => {
+  return axios.get(`${API_URL}/my-requests`, { headers: headers() });
+};
+
+// UPDATE current request location (if backend endpoint exists)
+export const updateRequestLocation = (id, data) => {
+  return axios.put(`${API_URL}/update-location/${id}`, data, { headers: headers() });
+};

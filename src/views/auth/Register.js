@@ -11,19 +11,40 @@ export default function Register() {
     password: "",
     role: "client",
   });
+  const [permisFile, setPermisFile] = useState(null);
 
   // handle input
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    if (name === "role" && value !== "transporteur") {
+      setPermisFile(null);
+    }
   };
 
   // handle submit
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (formData.role === "transporteur") {
+      if (!permisFile) {
+        alert("Veuillez joindre une copie de votre permis de conduire (PDF ou image).");
+        return;
+      }
+    }
+
     try {
-      await registerUser(formData);
+      if (formData.role === "transporteur" && permisFile) {
+        const fd = new FormData();
+        fd.append("name", formData.name);
+        fd.append("email", formData.email);
+        fd.append("password", formData.password);
+        fd.append("role", formData.role);
+        fd.append("permis", permisFile);
+        await registerUser(fd);
+      } else {
+        await registerUser(formData);
+      }
       alert("Compte créé ✅");
 
       // redirect to login
@@ -140,6 +161,32 @@ export default function Register() {
                       <option value="transporteur">Transporteur</option>
                     </select>
                   </div>
+
+                  {formData.role === "transporteur" && (
+                    <div className="relative w-full mb-3">
+                      <label
+                        className="block uppercase text-blueGray-600 text-xs font-bold mb-2"
+                        htmlFor="permis-file"
+                      >
+                        Permis de conduire
+                      </label>
+                      <input
+                        id="permis-file"
+                        type="file"
+                        accept=".pdf,.jpg,.jpeg,.png,.webp"
+                        onChange={(e) => setPermisFile(e.target.files?.[0] || null)}
+                        className="border-0 px-3 py-3 bg-white rounded text-sm shadow w-full file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-lightBlue-500 file:text-white hover:file:bg-lightBlue-600"
+                      />
+                      {permisFile && (
+                        <p className="mt-2 text-xs text-blueGray-500">
+                          Fichier sélectionné : {permisFile.name}
+                        </p>
+                      )}
+                      <p className="mt-1 text-xs text-blueGray-400">
+                        Formats acceptés : PDF, JPG, PNG (max. selon limite serveur).
+                      </p>
+                    </div>
+                  )}
 
                   <div>
                     <label className="inline-flex items-center cursor-pointer">

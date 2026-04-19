@@ -19,80 +19,175 @@ export default function MesRequests() {
         setLoading(false);
       }
     };
-
     fetchMesRequests();
   }, []);
 
   return (
     <>
       <Navbar />
-      <div className="flex flex-col items-center min-h-screen bg-blueGray-100 pt-24 pb-10">
-        <div className="w-full max-w-4xl px-4">
 
-          <h2 className="text-3xl font-bold text-center text-lightBlue-600 mb-10">
-            📋 Mes Demandes Acceptées
-          </h2>
+      <div
+        style={{
+          background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
+          minHeight: "100vh",
+          paddingTop: 92,
+        }}
+        className="px-6 md:px-8 pb-16"
+      >
+        <div style={{ maxWidth: 1160, margin: "0 auto" }}>
 
+          {/* Header */}
+          <div className="mb-10">
+            <h2 className="font-semibold" style={{ fontSize: 22, color: "#0f172a" }}>
+              Mes demandes acceptées
+            </h2>
+            <p style={{ fontSize: 13, color: "#475569", marginTop: 6 }}>
+              Toutes les demandes que vous avez prises en charge
+            </p>
+          </div>
+
+          {/* États */}
           {loading ? (
-            <p className="text-center text-blueGray-500">Chargement...</p>
+            <p className="text-center text-sm" style={{ color: "#475569" }}>
+              Chargement...
+            </p>
           ) : requests.length === 0 ? (
-            <p className="text-center text-blueGray-500">
-              Aucune demande acceptée 📭
+            <p className="text-center text-sm" style={{ color: "#475569" }}>
+              Aucune demande acceptée
             </p>
           ) : (
-            <div className="flex flex-col gap-8">
-              {requests.map((request) => (
-                <div
-                  key={request._id}
-                  className="bg-white rounded-2xl shadow-xl p-8 border border-blueGray-100"
-                >
-                  <div className="flex flex-col gap-3">
 
-                    {/* Status badge */}
-                    <div className="flex justify-end">
-                      <span className="bg-green-100 text-green-700 font-bold px-4 py-1 rounded-full text-sm">
-                        ✅ Acceptée
-                      </span>
-                    </div>
+            /* Tableau */
+            <div
+              style={{
+                borderRadius: 14,
+                border: "1px solid #dbeafe",
+                overflow: "hidden",
+                boxShadow: "0 14px 30px rgba(30,64,175,0.08)",
+                background: "#ffffff",
+              }}
+            >
+              <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
 
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">📍 Départ :</span>{" "}
-                      {request.pickupLocation}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">📦 Livraison :</span>{" "}
-                      {request.deliveryLocation}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">📅 Date :</span>{" "}
-                      {new Date(request.date).toLocaleDateString("fr-FR")}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">⚖️ Poids :</span>{" "}
-                      {request.weight} kg
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">⚠️ Sensible :</span>{" "}
-                      {request.isSensitive === "oui" ? "Oui 🔴" : "Non 🟢"}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">👤 Client :</span>{" "}
-                      {request.client?.name} ({request.client?.email})
-                    </p>
-                    <p className="text-blueGray-500 text-sm">
-                      <span className="font-bold">🕐 Créée le :</span>{" "}
-                      {new Date(request.createdAt).toLocaleDateString("fr-FR")}
-                    </p>
+                <thead style={{ background: "#eff6ff" }}>
+                  <tr>
+                    {["Départ", "Livraison", "Date", "Poids", "Sensible", "Client", "Créée le", "Statut"].map((h) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: "12px 14px",
+                          textAlign: "left",
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: "#1e3a8a",
+                          borderBottom: "1px solid #dbeafe",
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
 
-                  </div>
-                </div>
-              ))}
+                <tbody>
+                  {requests.map((request, i) => (
+                    <tr
+                      key={request._id}
+                      style={{
+                        borderBottom:
+                          i < requests.length - 1
+                            ? "1px solid #eff6ff"
+                            : "none",
+                      }}
+                    >
+                      <td style={tdStyle}>{request.pickupLocation}</td>
+                      <td style={tdStyle}>{request.deliveryLocation}</td>
+                      <td style={tdStyle}>
+                        {new Date(request.date).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td style={tdStyle}>{request.weight} kg</td>
+
+                      {/* Badge Sensible */}
+                      <td style={tdStyle}>
+                        {request.isSensitive === "oui" ? (
+                          <span style={badgeRed}>Oui</span>
+                        ) : (
+                          <span style={badgeGreen}>Non</span>
+                        )}
+                      </td>
+
+                      {/* Client */}
+                      <td style={tdStyle}>
+                        <div style={{ color: "#e2e8f0", fontSize: 12 }}>
+                          {request.client?.name}
+                        </div>
+                        <div style={{ color: "#334155", fontSize: 11 }}>
+                          {request.client?.email}
+                        </div>
+                      </td>
+
+                      {/* Date création */}
+                      <td style={tdStyle}>
+                        {new Date(request.createdAt).toLocaleDateString("fr-FR")}
+                      </td>
+
+                      {/* Statut */}
+                      <td style={tdStyle}>
+                        <span style={badgeAccepted}>Acceptée</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
 
         </div>
       </div>
+
       <Footer />
     </>
   );
 }
+
+/* ── Styles ── */
+const tdStyle = {
+  padding: "14px 14px",
+  color: "#334155",
+  fontSize: 13,
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
+const badgeAccepted = {
+  display: "inline-block",
+  padding: "2px 10px",
+  borderRadius: 20,
+  fontSize: 11,
+  fontWeight: 500,
+  background: "#dcfce7",
+  color: "#166534",
+  border: "1px solid #bbf7d0",
+};
+
+const badgeRed = {
+  display: "inline-block",
+  padding: "2px 8px",
+  borderRadius: 20,
+  fontSize: 11,
+  fontWeight: 500,
+  background: "#fee2e2",
+  color: "#991b1b",
+};
+
+const badgeGreen = {
+  display: "inline-block",
+  padding: "2px 8px",
+  borderRadius: 20,
+  fontSize: 11,
+  fontWeight: 500,
+  background: "#dcfce7",
+  color: "#166534",
+};

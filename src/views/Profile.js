@@ -1,24 +1,62 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import Navbar from "components/Navbars/AuthNavbar.js";
 import Footer from "components/Footers/Footer.js";
 
 export default function Profile() {
+  const safeParseUser = () => {
+    try {
+      return JSON.parse(localStorage.getItem("user") || "{}");
+    } catch {
+      return {};
+    }
+  };
+
+  const user = safeParseUser();
+  const role = user?.role || "client";
+  const isTransporteur = role === "transporteur";
+  const fullName =
+    user?.name ||
+    [user?.firstName, user?.lastName].filter(Boolean).join(" ") ||
+    "Utilisateur";
+
+  const profileTitle = isTransporteur ? "Profil Transporteur" : "Profil Client";
+  const heroImage = isTransporteur
+    ? "https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1800&q=80"
+    : "https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?auto=format&fit=crop&w=1800&q=80";
+
+  const details = [
+    { label: "Nom complet", value: fullName },
+    { label: "Email", value: user?.email },
+    { label: "Téléphone", value: user?.phone || user?.telephone },
+    { label: "Adresse", value: user?.address || user?.adresse },
+    { label: "Ville", value: user?.city || user?.ville },
+    { label: "Code postal", value: user?.postalCode || user?.zipCode },
+    {
+      label: isTransporteur ? "Type de véhicule" : "Type de compte",
+      value: isTransporteur ? user?.vehicleType || user?.vehicule : "Client",
+    },
+    {
+      label: isTransporteur ? "Capacité (kg)" : "Préférence de transport",
+      value: isTransporteur ? user?.capacity || user?.capacite : user?.preference,
+    },
+  ];
+
   return (
     <>
-      <Navbar transparent />
+      <Navbar fixed />
       <main className="profile-page">
-        <section className="relative block h-500-px">
+        <section className="relative block h-96">
           <div
             className="absolute top-0 w-full h-full bg-center bg-cover"
             style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1499336315816-097655dcfbda?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2710&q=80')",
+              backgroundImage: `url('${heroImage}')`,
             }}
           >
             <span
               id="blackOverlay"
-              className="w-full h-full absolute opacity-50 bg-black"
+              className="w-full h-full absolute opacity-60 bg-black"
             ></span>
           </div>
           <div
@@ -43,13 +81,13 @@ export default function Profile() {
         </section>
         <section className="relative py-16 bg-blueGray-200">
           <div className="container mx-auto px-4">
-            <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-64">
+            <div className="relative flex flex-col min-w-0 break-words bg-white w-full mb-6 shadow-xl rounded-lg -mt-40">
               <div className="px-6">
                 <div className="flex flex-wrap justify-center">
                   <div className="w-full lg:w-3/12 px-4 lg:order-2 flex justify-center">
                     <div className="relative">
                       <img
-                        alt="..."
+                        alt="profile"
                         src={require("assets/img/team-2-800x800.jpg").default}
                         className="shadow-xl rounded-full h-auto align-middle border-none absolute -m-16 -ml-20 lg:-ml-16 max-w-150-px"
                       />
@@ -57,38 +95,38 @@ export default function Profile() {
                   </div>
                   <div className="w-full lg:w-4/12 px-4 lg:order-3 lg:text-right lg:self-center">
                     <div className="py-6 px-3 mt-32 sm:mt-0">
-                      <button
-                        className="bg-lightBlue-500 active:bg-lightBlue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150"
-                        type="button"
+                      <Link
+                        to={isTransporteur ? "/requests" : "/client"}
+                        className="bg-lightBlue-500 active:bg-lightBlue-600 uppercase text-white font-bold hover:shadow-md shadow text-xs px-4 py-2 rounded outline-none focus:outline-none sm:mr-2 mb-1 ease-linear transition-all duration-150 inline-block"
                       >
-                        Connect
-                      </button>
+                        {isTransporteur ? "Voir les demandes" : "Nouvelle demande"}
+                      </Link>
                     </div>
                   </div>
                   <div className="w-full lg:w-4/12 px-4 lg:order-1">
                     <div className="flex justify-center py-4 lg:pt-4 pt-8">
                       <div className="mr-4 p-3 text-center">
                         <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
-                          23
+                          {isTransporteur ? "Transporteur" : "Client"}
                         </span>
                         <span className="text-sm text-blueGray-400">
-                          Friends
+                          Rôle
                         </span>
                       </div>
                       <div className="mr-4 p-3 text-center">
                         <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
-                          10
+                          {user?.city || user?.ville || "-"}
                         </span>
                         <span className="text-sm text-blueGray-400">
-                          Photos
+                          Ville
                         </span>
                       </div>
                       <div className="lg:mr-4 p-3 text-center">
                         <span className="text-xl font-bold block uppercase tracking-wide text-blueGray-600">
-                          89
+                          {user?.phone || user?.telephone ? "OK" : "-"}
                         </span>
                         <span className="text-sm text-blueGray-400">
-                          Comments
+                          Contact
                         </span>
                       </div>
                     </div>
@@ -96,38 +134,42 @@ export default function Profile() {
                 </div>
                 <div className="text-center mt-12">
                   <h3 className="text-4xl font-semibold leading-normal mb-2 text-blueGray-700 mb-2">
-                    Jenna Stones
+                    {fullName}
                   </h3>
                   <div className="text-sm leading-normal mt-0 mb-2 text-blueGray-400 font-bold uppercase">
                     <i className="fas fa-map-marker-alt mr-2 text-lg text-blueGray-400"></i>{" "}
-                    Los Angeles, California
+                    {user?.city || user?.ville || "Ville non renseignée"}
                   </div>
                   <div className="mb-2 text-blueGray-600 mt-10">
                     <i className="fas fa-briefcase mr-2 text-lg text-blueGray-400"></i>
-                    Solution Manager - Creative Tim Officer
+                    {profileTitle}
                   </div>
                   <div className="mb-2 text-blueGray-600">
                     <i className="fas fa-university mr-2 text-lg text-blueGray-400"></i>
-                    University of Computer Science
+                    {user?.email || "Email non renseigné"}
                   </div>
                 </div>
                 <div className="mt-10 py-10 border-t border-blueGray-200 text-center">
                   <div className="flex flex-wrap justify-center">
                     <div className="w-full lg:w-9/12 px-4">
-                      <p className="mb-4 text-lg leading-relaxed text-blueGray-700">
-                        An artist of considerable range, Jenna the name taken by
-                        Melbourne-raised, Brooklyn-based Nick Murphy writes,
-                        performs and records all of his own music, giving it a
-                        warm, intimate feel with a solid groove structure. An
-                        artist of considerable range.
-                      </p>
-                      <a
-                        href="#pablo"
-                        className="font-normal text-lightBlue-500"
-                        onClick={(e) => e.preventDefault()}
-                      >
-                        Show more
-                      </a>
+                      <h4 className="text-2xl font-semibold text-blueGray-700 mb-6">
+                        Coordonnées
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        {details.map((item) => (
+                          <div
+                            key={item.label}
+                            className="bg-blueGray-50 rounded-lg px-4 py-3 border border-blueGray-100"
+                          >
+                            <div className="text-xs uppercase tracking-wide text-blueGray-400 mb-1">
+                              {item.label}
+                            </div>
+                            <div className="text-sm font-semibold text-blueGray-700">
+                              {item.value || "Non renseigné"}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>

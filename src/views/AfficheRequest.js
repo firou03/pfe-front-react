@@ -20,9 +20,7 @@ export default function AfficheRequest() {
     }
   };
 
-  useEffect(() => {
-    fetchRequests();
-  }, []);
+  useEffect(() => { fetchRequests(); }, []);
 
   const handleAccept = async (id) => {
     try {
@@ -43,89 +41,212 @@ export default function AfficheRequest() {
 
   return (
     <>
-      {/* ✅ Navbar sans transparent */}
       <Navbar />
-      
-      <div className="flex flex-col items-center min-h-screen bg-blueGray-100 pt-24 pb-10">
-        <div className="w-full max-w-4xl px-4">
 
-          <h2 className="text-3xl font-bold text-center text-lightBlue-600 mb-10">
-            🚚 Demandes de Transport en Attente
-          </h2>
-          <div className="flex justify-end mb-6">
-  <Link
-    to="/mes-requests"
-    className="bg-lightBlue-500 text-white px-6 py-2 rounded-lg font-bold hover:bg-lightBlue-600 transition duration-300"
-  >
-    📋 Voir mes demandes acceptées
-  </Link>
-</div>
+      <div
+        style={{
+          background: "linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%)",
+          minHeight: "100vh",
+          paddingTop: 92,
+        }}
+        className="px-6 md:px-8 pb-16"
+      >
+        <div style={{ maxWidth: 1160, margin: "0 auto" }}>
 
+          {/* Header */}
+          <div className="flex justify-between items-center mb-10">
+            <h2
+              className="font-semibold"
+              style={{ fontSize: 22, color: "#0f172a" }}
+            >
+              Demandes en attente
+            </h2>
+            <div className="flex flex-wrap gap-2 justify-end">
+              <Link
+                to="/profile/transporteur"
+                className="text-white text-xs font-medium px-4 py-2 rounded-lg"
+                style={{ background: "#3b82f6" }}
+              >
+                Mon profile
+              </Link>
+              <Link
+                to="/tracking"
+                className="text-white text-xs font-medium px-4 py-2 rounded-lg"
+                style={{ background: "#1e40af" }}
+              >
+                Tracking colis
+              </Link>
+              <Link
+                to="/mes-requests"
+                className="text-white text-xs font-medium px-4 py-2 rounded-lg"
+                style={{ background: "#3b82f6" }}
+              >
+                Mes demandes acceptées
+              </Link>
+            </div>
+          </div>
+
+          {/* États */}
           {loading ? (
-            <p className="text-center text-blueGray-500">Chargement...</p>
+            <p className="text-center text-sm" style={{ color: "#475569" }}>
+              Chargement...
+            </p>
           ) : requests.length === 0 ? (
-            <p className="text-center text-blueGray-500">
-              Aucune demande en attente 📭
+            <p className="text-center text-sm" style={{ color: "#475569" }}>
+              Aucune demande en attente
             </p>
           ) : (
-            <div className="flex flex-col gap-8"> {/* ✅ espace entre chaque carte */}
-              {requests.map((request) => (
-                <div
-                  key={request._id}
-                  className="bg-white rounded-2xl shadow-xl p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 border border-blueGray-100"
-                >
-                  {/* Infos */}
-                  <div className="flex flex-col gap-3">
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">📍 Départ :</span>{" "}
-                      {request.pickupLocation}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">📦 Livraison :</span>{" "}
-                      {request.deliveryLocation}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">📅 Date :</span>{" "}
-                      {new Date(request.date).toLocaleDateString("fr-FR")}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">⚖️ Poids :</span>{" "}
-                      {request.weight} kg
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">⚠️ Sensible :</span>{" "}
-                      {request.isSensitive === "oui" ? "Oui 🔴" : "Non 🟢"}
-                    </p>
-                    <p className="text-blueGray-700">
-                      <span className="font-bold">👤 Client :</span>{" "}
-                      {request.client?.name} ({request.client?.email})
-                    </p>
-                  </div>
 
-                  {/* ✅ Deux boutons */}
-                  <div className="flex flex-col gap-3 min-w-max">
-                    <button
-                      onClick={() => handleAccept(request._id)}
-                      className="bg-green-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-600 transition duration-300"
-                    >
-                      ✅ Accepter
-                    </button>
-                    <button
-                      onClick={() => handleDelete(request._id)}
-                      className="bg-red-500 text-white px-6 py-3 rounded-lg font-bold hover:bg-red-600 transition duration-300"
-                    >
-                      🗑️ Supprimer
-                    </button>
-                  </div>
+            /* Tableau */
+            <div
+              style={{
+                borderRadius: 14,
+                border: "1px solid #dbeafe",
+                overflow: "hidden",
+                boxShadow: "0 14px 30px rgba(30,64,175,0.08)",
+                background: "#ffffff",
+              }}
+            >
+              <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
 
-                </div>
-              ))}
+                {/* En-têtes */}
+                <thead style={{ background: "#eff6ff" }}>
+                  <tr>
+                    {["Départ", "Livraison", "Date", "Poids", "Sensible", "Client", "Actions"].map((h) => (
+                      <th
+                        key={h}
+                        style={{
+                          padding: "12px 14px",
+                          textAlign: "left",
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: "#1e3a8a",
+                          borderBottom: "1px solid #dbeafe",
+                        }}
+                      >
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+
+                {/* Lignes */}
+                <tbody>
+                  {requests.map((request, i) => (
+                    <tr
+                      key={request._id}
+                      style={{
+                        borderBottom:
+                          i < requests.length - 1
+                            ? "1px solid #eff6ff"
+                            : "none",
+                      }}
+                    >
+                      <td style={tdStyle}>{request.pickupLocation}</td>
+                      <td style={tdStyle}>{request.deliveryLocation}</td>
+                      <td style={tdStyle}>
+                        {new Date(request.date).toLocaleDateString("fr-FR")}
+                      </td>
+                      <td style={tdStyle}>{request.weight} kg</td>
+
+                      {/* Badge Sensible */}
+                      <td style={tdStyle}>
+                        {request.isSensitive === "oui" ? (
+                          <span style={badgeRed}>Oui</span>
+                        ) : (
+                          <span style={badgeGreen}>Non</span>
+                        )}
+                      </td>
+
+                      {/* Client */}
+                      <td style={tdStyle}>
+                        <div style={{ color: "#e2e8f0", fontSize: 12 }}>
+                          {request.client?.name}
+                        </div>
+                        <div style={{ color: "#334155", fontSize: 11 }}>
+                          {request.client?.email}
+                        </div>
+                      </td>
+
+                      {/* Actions */}
+                      <td style={tdStyle}>
+                        <button
+                          onClick={() => handleAccept(request._id)}
+                          style={btnAccept}
+                        >
+                          Accepter
+                        </button>
+                        <button
+                          onClick={() => handleDelete(request._id)}
+                          style={btnDelete}
+                        >
+                          Suppr.
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-
         </div>
       </div>
+
       <Footer />
     </>
   );
 }
+
+/* ── Styles partagés ── */
+const tdStyle = {
+  padding: "14px 14px",
+  color: "#334155",
+  fontSize: 13,
+  verticalAlign: "middle",
+  whiteSpace: "nowrap",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+};
+
+const badgeRed = {
+  display: "inline-block",
+  padding: "2px 8px",
+  borderRadius: 20,
+  fontSize: 11,
+  fontWeight: 500,
+  background: "#fee2e2",
+  color: "#991b1b",
+};
+
+const badgeGreen = {
+  display: "inline-block",
+  padding: "2px 8px",
+  borderRadius: 20,
+  fontSize: 11,
+  fontWeight: 500,
+  background: "#dcfce7",
+  color: "#166534",
+};
+
+const btnAccept = {
+  padding: "5px 10px",
+  borderRadius: 6,
+  background: "#dcfce7",
+  color: "#166534",
+  border: "1px solid #bbf7d0",
+  fontSize: 11,
+  fontWeight: 500,
+  cursor: "pointer",
+  marginRight: 6,
+};
+
+const btnDelete = {
+  padding: "5px 10px",
+  borderRadius: 6,
+  background: "#fee2e2",
+  color: "#991b1b",
+  border: "1px solid #fecaca",
+  fontSize: 11,
+  fontWeight: 500,
+  cursor: "pointer",
+};

@@ -3,7 +3,7 @@ import axios from "axios";
 const API_URL = "http://localhost:5000/users";
 
 
-// REGISTER
+// REGISTER — JSON ou FormData (ex. permis transporteur en fichier)
 export const registerUser = (data) => {
   return axios.post(`${API_URL}/CreateUser`, data);
 };
