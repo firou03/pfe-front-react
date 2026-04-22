@@ -18,6 +18,9 @@ import Landing from "views/Landing.js";
 import Profile from "views/Profile.js";
 import Index from "views/Index.js";
 import ColisTracking from "views/ColisTracking.js";
+import Chat from "views/Chat.js";
+import ClientDashboard from "views/ClientDashboard.js";
+import TransporteurDashboard from "views/TransporteurDashboard.js";
 
 
 ReactDOM.render(
@@ -35,6 +38,9 @@ ReactDOM.render(
       <Route path="/profile/client" exact component={Profile} />
       <Route path="/profile/transporteur" exact component={Profile} />
       <Route path="/tracking" exact component={ColisTracking} />
+      <Route path="/chat" exact component={Chat} />
+      <Route path="/dashboard/client" exact component={ClientDashboard} />
+      <Route path="/dashboard/transporteur" exact component={TransporteurDashboard} />
       <Route path="/" exact component={Index} />
       {/* add redirect for first page */}
       <Redirect from="*" to="/" />

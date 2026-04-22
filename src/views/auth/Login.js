@@ -38,13 +38,13 @@ export default function Login() {
 
     alert("Connexion réussie ✅");
 
-    // ✅ Redirige selon le rôle
+    // ✅ Redirige selon le rôle vers le dashboard
     if (user.role === "admin") {
       history.push("/admin/dashboard");
     } else if (user.role === "transporteur") {
-      history.push("/requests"); // ← page des demandes pour transporteur
+      history.push("/dashboard/transporteur");
     } else {
-      history.push("/client"); // ← client normal
+      history.push("/dashboard/client");
     }
 
   } catch (error) {
