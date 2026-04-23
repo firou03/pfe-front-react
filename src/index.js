@@ -37,6 +37,7 @@ ReactDOM.render(
       <Route path="/profile" exact component={Profile} />
       <Route path="/profile/client" exact component={Profile} />
       <Route path="/profile/transporteur" exact component={Profile} />
+      <Route path="/profile/:userId" exact component={Profile} />
       <Route path="/tracking" exact component={ColisTracking} />
       <Route path="/chat" exact component={Chat} />
       <Route path="/dashboard/client" exact component={ClientDashboard} />

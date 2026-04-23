@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getConversations, createConversation, getConversationByRequest } from "service/restApiChat";
-import { chatLocalStorage } from "service/chatLocalStorage";
+import { getConversations } from "service/restApiChat";
 
 export default function ConversationsList({ currentUser, onSelectConversation, selectedConversationId }) {
   const [conversations, setConversations] = useState([]);
@@ -9,59 +8,37 @@ export default function ConversationsList({ currentUser, onSelectConversation, s
 
   useEffect(() => {
     loadConversations();
+    
+    // Polling pour le temps réel (toutes les 5 secondes)
+    const interval = setInterval(() => {
+      loadConversations(true);
+    }, 5000);
+    
+    return () => clearInterval(interval);
   }, []);
 
-  const loadConversations = async () => {
+  const loadConversations = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       
-      // Essayer d'abord avec l'API
+      // Utiliser l'API
       try {
         const res = await getConversations();
-        setConversations(res.data || []);
-        console.log("Conversations chargées depuis l'API");
-      } catch (apiError) {
-        console.warn("API non disponible, utilisation du localStorage:", apiError.message);
-        
-        // Fallback vers localStorage
-        const res = await chatLocalStorage.getConversations();
-        setConversations(res.data || []);
-        console.log("Conversations chargées depuis localStorage");
-      }
-    } catch (error) {
-      console.error("Error loading conversations:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCreateConversation = async (participantId, requestId) => {
-    try {
-      const res = await createConversation(participantId, requestId);
-      setConversations(prev => [res.data, ...prev]);
-    } catch (error) {
-      console.error("Error creating conversation:", error);
-    }
-  };
-
-  const handleGetConversationByRequest = async (requestId) => {
-    try {
-      const res = await getConversationByRequest(requestId);
-      if (res.data) {
         setConversations(prev => {
-          const exists = prev.find(c => c._id === res.data._id);
-          if (!exists) {
-            return [res.data, ...prev];
+          // Only update if data changed to avoid unnecessary re-renders
+          if (JSON.stringify(prev) !== JSON.stringify(res.data)) {
+            return res.data || [];
           }
           return prev;
         });
-        onSelectConversation(res.data);
-      } else {
-        // Create new conversation if it doesn't exist
-        console.log("Conversation not found, needs to be created");
+        if (!silent) console.log("Conversations chargées depuis l'API");
+      } catch (apiError) {
+        if (!silent) console.error("Erreur lors du chargement des conversations:", apiError.message);
       }
     } catch (error) {
-      console.error("Error getting conversation by request:", error);
+      if (!silent) console.error("Error loading conversations:", error);
+    } finally {
+      if (!silent) setLoading(false);
     }
   };
 
@@ -86,17 +63,23 @@ export default function ConversationsList({ currentUser, onSelectConversation, s
 
   const getOtherUser = (conversation) => {
     if (!conversation.participants) return null;
-    return conversation.participants.find(p => p._id !== currentUser._id);
+    return conversation.participants.find(p => {
+      const id = typeof p === 'string' ? p : p._id;
+      return id !== currentUser._id;
+    });
   };
 
   const filteredConversations = conversations.filter(conv => {
     const otherUser = getOtherUser(conv);
     if (!otherUser) return false;
     
+    const name = typeof otherUser === 'string' ? "Utilisateur" : (otherUser.name || "Utilisateur");
+    const email = typeof otherUser === 'string' ? "" : (otherUser.email || "");
+    
     const searchLower = searchTerm.toLowerCase();
     return (
-      otherUser.name?.toLowerCase().includes(searchLower) ||
-      otherUser.email?.toLowerCase().includes(searchLower) ||
+      name.toLowerCase().includes(searchLower) ||
+      email.toLowerCase().includes(searchLower) ||
       conv.lastMessage?.content?.toLowerCase().includes(searchLower)
     );
   });
@@ -166,13 +149,13 @@ export default function ConversationsList({ currentUser, onSelectConversation, s
                 }}
               >
                 <div style={avatarStyle}>
-                  {otherUser?.name?.charAt(0)?.toUpperCase() || "U"}
+                  {(typeof otherUser === 'string' ? "U" : (otherUser.name?.charAt(0) || "U")).toUpperCase()}
                 </div>
                 
                 <div style={contentStyle}>
                   <div style={headerRowStyle}>
                     <div style={nameStyle}>
-                      {otherUser?.name || "Utilisateur"}
+                      {typeof otherUser === 'string' ? "Utilisateur" : (otherUser.name || "Utilisateur")}
                     </div>
                     <div style={timeStyle}>
                       {conversation.lastMessage && formatTime(conversation.lastMessage.createdAt)}
@@ -237,6 +220,7 @@ const searchInputStyle = {
   fontSize: "14px",
   outline: "none",
   backgroundColor: "#f8fafc",
+  color: "#0f172a",
 };
 
 const listContainerStyle = {

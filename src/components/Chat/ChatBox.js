@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { getMessages, sendMessage, markMessagesAsRead } from "service/restApiChat";
-import { chatLocalStorage } from "service/chatLocalStorage";
 
 export default function ChatBox({ conversationId, currentUser, otherUser }) {
   const [messages, setMessages] = useState([]);
@@ -9,6 +8,31 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+
+  const loadMessages = React.useCallback(async (silent = false) => {
+    try {
+      if (!silent) setLoading(true);
+      
+      // Utiliser l'API
+      try {
+        const res = await getMessages(conversationId);
+        // Only update state if messages actually changed or it's the first load
+        setMessages(prev => {
+          if (JSON.stringify(prev) !== JSON.stringify(res.data)) {
+            return res.data || [];
+          }
+          return prev;
+        });
+        if (!silent) console.log("Messages chargés depuis l'API");
+      } catch (apiError) {
+        if (!silent) console.error("Erreur lors du chargement des messages via API:", apiError.message);
+      }
+    } catch (error) {
+      if (!silent) console.error("Error loading messages:", error);
+    } finally {
+      if (!silent) setLoading(false);
+    }
+  }, [conversationId]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -19,36 +43,21 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
   }, [messages]);
 
   useEffect(() => {
+    let interval;
     if (conversationId) {
       loadMessages();
       // Mark messages as read when opening conversation
       markMessagesAsRead(conversationId).catch(console.error);
-    }
-  }, [conversationId]);
 
-  const loadMessages = async () => {
-    try {
-      setLoading(true);
-      
-      // Essayer d'abord avec l'API
-      try {
-        const res = await getMessages(conversationId);
-        setMessages(res.data || []);
-        console.log("Messages chargés depuis l'API");
-      } catch (apiError) {
-        console.warn("API non disponible, utilisation du localStorage:", apiError.message);
-        
-        // Fallback vers localStorage
-        const res = await chatLocalStorage.getMessages(conversationId);
-        setMessages(res.data || []);
-        console.log("Messages chargés depuis localStorage");
-      }
-    } catch (error) {
-      console.error("Error loading messages:", error);
-    } finally {
-      setLoading(false);
+      // Polling pour le temps réel (toutes les 3 secondes)
+      interval = setInterval(() => {
+        loadMessages(true);
+      }, 3000);
     }
-  };
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [conversationId, loadMessages]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -61,18 +70,14 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
         senderId: currentUser._id,
       };
 
-      // Essayer d'abord avec l'API
+      // Utiliser l'API
       try {
         const res = await sendMessage(conversationId, messageData);
         setMessages(prev => [...prev, res.data]);
         console.log("Message envoyé via l'API");
       } catch (apiError) {
-        console.warn("API non disponible, utilisation du localStorage:", apiError.message);
-        
-        // Fallback vers localStorage
-        const res = await chatLocalStorage.sendMessage(conversationId, messageData);
-        setMessages(prev => [...prev, res.data]);
-        console.log("Message envoyé via localStorage");
+        console.error("Erreur lors de l'envoi du message via API:", apiError.message);
+        alert("Erreur lors de l'envoi du message via le serveur.");
       }
       
       setNewMessage("");
@@ -270,6 +275,9 @@ const headerStyle = {
   padding: "16px 20px",
   backgroundColor: "#f8fafc",
   borderBottom: "1px solid #e2e8f0",
+  display: "flex",
+  justifyContent: "space-between",
+  alignItems: "center",
 };
 
 const userInfoStyle = {
@@ -365,6 +373,7 @@ const inputStyle = {
   fontSize: "14px",
   outline: "none",
   backgroundColor: "#f8fafc",
+  color: "#0f172a",
 };
 
 const sendButtonStyle = {

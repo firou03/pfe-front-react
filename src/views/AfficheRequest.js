@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { getPendingRequests, acceptTransportRequest } from "service/restApiTransport";
+import { createConversation, sendMessage } from "service/restApiChat";
 
 const Ic = ({ d, size = 16, color = "rgba(255,255,255,0.35)", sw = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
@@ -56,11 +57,30 @@ export default function AfficheRequest() {
 
   useEffect(() => { fetchRequests(); }, []);
 
-  const handleAccept = async (id) => {
+  const handleAccept = async (id, clientId) => {
     setAccepting(id);
     try {
       await acceptTransportRequest(id);
+      
+      // Automatiquement créer une conversation avec le client
+      try {
+        const convRes = await createConversation(clientId, id);
+        const convId = convRes.data?._id;
+        console.log("Conversation créée via API:", convId);
+        
+        if (convId) {
+          await sendMessage(convId, { content: "Bonjour, j'ai accepté votre demande de transport. Nous pouvons discuter des détails ici." });
+          console.log("Message de bienvenue envoyé");
+        }
+      } catch (chatErr) {
+        console.error("Erreur création conversation via API:", chatErr.message);
+      }
+
       setRequests(prev => prev.filter(r => r._id !== id));
+      alert("Demande acceptée ! Conversation démarrée. ✅");
+      
+      // Optionnel: rediriger vers le chat
+      // window.location.href = "/chat";
     } catch { alert("Erreur lors de l'acceptation ❌"); }
     finally { setAccepting(null); }
   };
@@ -236,7 +256,7 @@ export default function AfficheRequest() {
 
                     {/* Actions */}
                     <div style={{ display:"flex", gap:8 }}>
-                      <button className="acc" onClick={() => handleAccept(r._id)} disabled={accepting === r._id} style={{
+                      <button className="acc" onClick={() => handleAccept(r._id, r.client?._id)} disabled={accepting === r._id} style={{
                         padding:"5px 12px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
                         background:"rgba(34,197,94,0.15)", border:"1px solid rgba(34,197,94,0.3)",
                         color:"#4ade80", opacity: accepting === r._id ? 0.6 : 1,

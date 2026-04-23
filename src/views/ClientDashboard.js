@@ -4,7 +4,7 @@ import { getClientRequests } from "service/restApiTransport";
 
 /* ─────────────────────────────────────────────
    Tiny SVG icons
-───────────────────────────────────────────── */
+ ───────────────────────────────────────────── */
 const Icon = ({ d, size = 20, color = "#fff", strokeWidth = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
@@ -26,7 +26,7 @@ const ICONS = {
 
 /* ─────────────────────────────────────────────
    Bar Chart (SVG, no library)
-───────────────────────────────────────────── */
+ ───────────────────────────────────────────── */
 function ActivityChart({ requests }) {
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -74,7 +74,7 @@ function ActivityChart({ requests }) {
 
 /* ─────────────────────────────────────────────
    Status badge helper
-───────────────────────────────────────────── */
+ ───────────────────────────────────────────── */
 function StatusBadge({ status }) {
   const map = {
     pending:   { label: "En attente",  bg: "rgba(251,191,36,0.15)", color: "#fbbf24",  border: "rgba(251,191,36,0.3)"  },
@@ -97,27 +97,28 @@ function StatusBadge({ status }) {
 
 /* ─────────────────────────────────────────────
    Main component
-───────────────────────────────────────────── */
+ ───────────────────────────────────────────── */
 export default function ClientDashboard() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
   const isMounted = useRef(true);
 
   const currentUser = React.useMemo(() => {
     try { return JSON.parse(localStorage.getItem("user") || "{}"); }
     catch { return {}; }
   }, []);
-
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
   useEffect(() => {
     isMounted.current = true;
-    setMounted(true);
     const load = async () => {
       try {
         const res = await getClientRequests();
         if (isMounted.current) setRequests(res.data || []);
       } catch {
-        // fallback to localStorage
         const local = JSON.parse(localStorage.getItem("clientRequests") || "[]");
         if (isMounted.current) setRequests(local);
       } finally {
@@ -128,7 +129,6 @@ export default function ClientDashboard() {
     return () => { isMounted.current = false; };
   }, []);
 
-  // KPI derivations
   const total     = requests.length;
   const pending   = requests.filter(r => !r.status || r.status === "pending").length;
   const accepted  = requests.filter(r => r.status === "accepted").length;
@@ -150,7 +150,6 @@ export default function ClientDashboard() {
     { label: "Mon Profil",       to: "/profile/client", icon: ICONS.user, grad: "linear-gradient(135deg,#7c3aed,#6d28d9)" },
   ];
 
-  /* ── Shared card style ── */
   const glass = {
     background: "rgba(255,255,255,0.04)",
     border: "1px solid rgba(255,255,255,0.08)",
@@ -161,7 +160,6 @@ export default function ClientDashboard() {
 
   return (
     <>
-      {/* Google Font */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 
@@ -171,11 +169,6 @@ export default function ClientDashboard() {
         @keyframes fadeUp {
           from { opacity: 0; transform: translateY(20px); }
           to   { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes pulse-ring {
-          0%   { box-shadow: 0 0 0 0 rgba(59,130,246,0.4); }
-          70%  { box-shadow: 0 0 0 10px rgba(59,130,246,0); }
-          100% { box-shadow: 0 0 0 0 rgba(59,130,246,0); }
         }
         .dash-fadeup { animation: fadeUp 0.5s ease forwards; }
         .kpi-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important; }
@@ -246,21 +239,23 @@ export default function ClientDashboard() {
           {/* User card at bottom */}
           <div style={{
             ...glass, padding: "14px 16px",
-            display: "flex", alignItems: "center", gap: 10,
+            display: "flex", alignItems: "center", gap: 12,
+            position: "relative"
           }}>
             <div style={{
-              width: 34, height: 34, borderRadius: "50%",
+              width: 36, height: 36, borderRadius: "50%",
               background: "linear-gradient(135deg,#3b82f6,#7c3aed)",
               display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 700, color: "#fff", flexShrink: 0,
+              fontSize: 14, fontWeight: 700, color: "#fff", flexShrink: 0,
+              boxShadow: "0 4px 10px rgba(0,0,0,0.2)"
             }}>
               {(currentUser?.name || currentUser?.email || "C").charAt(0).toUpperCase()}
             </div>
-            <div style={{ overflow: "hidden" }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            <div style={{ overflow: "hidden", flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", whiteSpace: "nowrap", overflow: "hidden", textOverflow:"ellipsis" }}>
                 {currentUser?.name || "Client"}
               </div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", whiteSpace: "nowrap", overflow: "hidden", textOverflow:"ellipsis" }}>
                 {currentUser?.email || ""}
               </div>
             </div>
@@ -282,33 +277,51 @@ export default function ClientDashboard() {
                 Bonjour, {currentUser?.name?.split(" ")[0] || "Client"} 👋
               </h1>
             </div>
-            <Link to="/client" style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 20px", borderRadius: 12, fontSize: 13, fontWeight: 600,
-              background: "linear-gradient(135deg,#3b82f6,#2563eb)",
-              color: "#fff", textDecoration: "none",
-              boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
-            }} className="action-btn">
-              <Icon d={ICONS.plus} size={15} color="#fff" />
-              Nouvelle demande
-            </Link>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Link to="/client" style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "10px 20px", borderRadius: 12, fontSize: 13, fontWeight: 600,
+                background: "linear-gradient(135deg,#3b82f6,#2563eb)",
+                color: "#fff", textDecoration: "none",
+                boxShadow: "0 4px 14px rgba(59,130,246,0.4)",
+              }} className="action-btn">
+                <Icon d={ICONS.plus} size={15} color="#fff" />
+                Nouvelle demande
+              </Link>
+
+              <button 
+                onClick={handleLogout}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "10px 18px", borderRadius: 12, fontSize: 13, fontWeight: 600,
+                  background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
+                  color: "#f87171", cursor: "pointer", transition: "all 0.2s"
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.2)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.4)"; }}
+                onMouseOut={(e) => { e.currentTarget.style.background = "rgba(239,68,68,0.1)"; e.currentTarget.style.borderColor = "rgba(239,68,68,0.2)"; }}
+              >
+                <Icon d={ICONS.logout} size={16} color="#f87171" />
+                Déconnexion
+              </button>
+            </div>
           </div>
 
           {/* ── KPI Cards ── */}
           <div style={{
-            display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 18, marginBottom: 32,
+            display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 24, marginBottom: 40,
           }}>
             {kpis.map((k, i) => (
               <div key={i} className="kpi-card" style={{
                 ...glass, padding: "22px 24px",
-                animation: `fadeUp 0.5s ease ${i * 0.07}s both`,
+                animation: `fadeUp 0.5s ease ${i * 0.1}s both`,
               }}>
                 <div style={{
                   width: 42, height: 42, borderRadius: 12, background: k.grad,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   marginBottom: 14, boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
                 }}>
-                  <Icon d={k.icon} size={19} color="#fff" />
+                  <Icon d={k.icon} size={20} color="#fff" />
                 </div>
                 <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>
                   {loading ? "—" : k.value}
@@ -320,70 +333,25 @@ export default function ClientDashboard() {
             ))}
           </div>
 
-          {/* ── Bottom grid: Recent requests + Chart + Quick Actions ── */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 20 }}>
-
-            {/* Recent requests table */}
+          {/* ── Bottom grid ── */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
+            {/* Table */}
             <div style={{ ...glass, padding: "24px 28px", animation: "fadeUp 0.5s ease 0.3s both" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-                <div>
-                  <h2 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 }}>Mes demandes récentes</h2>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>Vos {Math.min(6, requests.length)} dernières demandes</p>
-                </div>
-                <Link to="/client" style={{
-                  fontSize: 11, fontWeight: 600, color: "#60a5fa",
-                  textDecoration: "none",
-                  background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)",
-                  padding: "5px 12px", borderRadius: 8,
-                }}>Nouvelle +</Link>
+                <h2 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 }}>Demandes récentes</h2>
               </div>
-
               {loading ? (
-                <div style={{ textAlign: "center", color: "rgba(255,255,255,0.3)", padding: "40px 0", fontSize: 13 }}>
-                  Chargement...
-                </div>
-              ) : recentRequests.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "48px 0" }}>
-                  <div style={{ fontSize: 40, marginBottom: 12 }}>📦</div>
-                  <div style={{ color: "rgba(255,255,255,0.35)", fontSize: 13 }}>Aucune demande encore</div>
-                  <Link to="/client" style={{
-                    display: "inline-block", marginTop: 16, padding: "8px 20px", borderRadius: 10,
-                    background: "linear-gradient(135deg,#3b82f6,#2563eb)", color: "#fff",
-                    textDecoration: "none", fontSize: 12, fontWeight: 600,
-                  }}>Créer ma première demande</Link>
-                </div>
+                <div style={{ textAlign: "center", padding: 40 }}>Chargement...</div>
+              ) : requests.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.3)" }}>Aucune demande</div>
               ) : (
-                <div>
-                  {/* Table header */}
-                  <div style={{
-                    display: "grid", gridTemplateColumns: "1fr 1fr 90px 70px 100px",
-                    padding: "0 0 10px 0",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
-                  }}>
-                    {["Départ", "Livraison", "Date", "Poids", "Statut"].map(h => (
-                      <span key={h} style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
-                    ))}
-                  </div>
-                  {/* Rows */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   {recentRequests.map((r, i) => (
-                    <div key={r._id || i} className="row-hover" style={{
-                      display: "grid", gridTemplateColumns: "1fr 1fr 90px 70px 100px",
-                      padding: "13px 0",
-                      borderBottom: i < recentRequests.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                      borderRadius: 8,
-                    }}>
-                      <span style={{ fontSize: 12, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 8 }}>
-                        {r.pickupLocation || "—"}
-                      </span>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", paddingRight: 8 }}>
-                        {r.deliveryLocation || "—"}
-                      </span>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-                        {r.date ? new Date(r.date).toLocaleDateString("fr-FR") : "—"}
-                      </span>
-                      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-                        {r.weight ? `${r.weight} kg` : "—"}
-                      </span>
+                    <div key={r._id || i} className="row-hover" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 8px", borderRadius: 10 }}>
+                      <div>
+                        <div style={{ fontSize: 13, fontWeight: 600 }}>{r.pickupLocation} → {r.deliveryLocation}</div>
+                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{r.date ? new Date(r.date).toLocaleDateString() : ""}</div>
+                      </div>
                       <StatusBadge status={r.status || "pending"} />
                     </div>
                   ))}
@@ -391,35 +359,22 @@ export default function ClientDashboard() {
               )}
             </div>
 
-            {/* Right column */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-
-              {/* Activity chart */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
               <div style={{ ...glass, padding: "22px 24px", animation: "fadeUp 0.5s ease 0.35s both" }}>
-                <h2 style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: "0 0 18px" }}>Activité (7 jours)</h2>
+                <h2 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 16px" }}>Activité</h2>
                 <ActivityChart requests={requests} />
               </div>
-
-              {/* Quick actions */}
               <div style={{ ...glass, padding: "22px 24px", animation: "fadeUp 0.5s ease 0.4s both" }}>
-                <h2 style={{ fontSize: 14, fontWeight: 700, color: "#fff", margin: "0 0 16px" }}>Actions rapides</h2>
+                <h2 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 14px" }}>Actions rapides</h2>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                  {quickActions.map(({ label, to, icon, grad }) => (
-                    <Link key={to} to={to} className="action-btn" style={{
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                      gap: 8, padding: "16px 10px", borderRadius: 14,
-                      background: grad, color: "#fff", textDecoration: "none",
-                      fontSize: 11, fontWeight: 600, textAlign: "center",
-                      boxShadow: "0 4px 12px rgba(0,0,0,0.25)",
-                      minHeight: 80,
-                    }}>
-                      <Icon d={icon} size={20} color="#fff" />
-                      {label}
+                  {quickActions.map(a => (
+                    <Link key={a.label} to={a.to} className="action-btn" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 10px", borderRadius: 14, background: a.grad, textDecoration: "none", color: "#fff", fontSize: 11, fontWeight: 600 }}>
+                      <Icon d={a.icon} size={20} />
+                      {a.label}
                     </Link>
                   ))}
                 </div>
               </div>
-
             </div>
           </div>
         </main>

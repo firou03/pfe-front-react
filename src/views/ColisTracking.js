@@ -33,7 +33,7 @@ export default function ColisTracking() {
   const [locationInputs, setLocationInputs] = useState({});
   const [loading, setLoading] = useState(true);
 
-  const filterRequests = (list, opts = {}) => {
+  const filterRequests = React.useCallback((list, opts = {}) => {
     const arr = Array.isArray(list) ? list : [];
     if (isTransporteur) return arr.filter(r => {
       if (r.transporteur?._id && user?._id) return sameUser(r.transporteur._id, user._id);
@@ -48,7 +48,7 @@ export default function ColisTracking() {
       if (r.createdByClientEmail && user?.email) return sameUser(r.createdByClientEmail, user.email);
       return opts.trustServerScope || false;
     });
-  };
+  }, [isTransporteur, user]);
 
   useEffect(() => {
     const load = async () => {
@@ -70,7 +70,7 @@ export default function ColisTracking() {
       finally { setLoading(false); }
     };
     load();
-  }, [isTransporteur]);
+  }, [isTransporteur, filterRequests]);
 
   const saveTracking = async (request) => {
     if (!isTransporteur) { alert("Seul le transporteur peut mettre à jour la localisation."); return; }

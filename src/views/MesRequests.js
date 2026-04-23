@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getMesRequests } from "service/restApiTransport";
+import { getMesRequests, deliverTransportRequest } from "service/restApiTransport";
+import { createConversation, sendMessage } from "service/restApiChat";
 
 const Ic = ({ d, size = 16, color = "rgba(255,255,255,0.35)", sw = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
@@ -46,12 +47,41 @@ export default function MesRequests() {
     try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
   }, []);
 
-  useEffect(() => {
+  const fetchRequests = () => {
     getMesRequests()
       .then(res => setRequests(res.data || []))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchRequests();
   }, []);
+
+  const handleDeliver = async (id) => {
+    try {
+      await deliverTransportRequest(id);
+      
+      // Notify client via chat if possible
+      const mission = requests.find(r => r._id === id);
+      if (mission && mission.client?._id) {
+        try {
+          const convRes = await createConversation(mission.client._id, id);
+          const convId = convRes.data?._id;
+          if (convId) {
+            await sendMessage(convId, { content: "✅ Votre colis a été livré avec succès. Merci de nous avoir fait confiance !" });
+          }
+        } catch (chatErr) {
+          console.error("Erreur notification chat:", chatErr);
+        }
+      }
+
+      setRequests(prev => prev.map(r => r._id === id ? { ...r, status: "delivered" } : r));
+      alert("Mission marquée comme livrée ! 📦✅");
+    } catch {
+      alert("Erreur lors de la mise à jour du statut ❌");
+    }
+  };
 
   const filtered = filter === "all" ? requests
     : requests.filter(r => r.isSensitive === (filter === "fragile" ? "oui" : "non"));
@@ -191,8 +221,8 @@ export default function MesRequests() {
             ) : (
               <>
                 {/* Column headers */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 110px 120px 100px", gap:8, padding:"0 12px 10px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                  {["Départ","Livraison","Date","Poids","Sensible","Client","Statut"].map(h => (
+                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 110px 120px 130px", gap:8, padding:"0 12px 10px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
+                  {["Départ","Livraison","Date","Poids","Sensible","Client","Statut / Actions"].map(h => (
                     <span key={h} style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{h}</span>
                   ))}
                 </div>
@@ -227,15 +257,28 @@ export default function MesRequests() {
                       <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.client?.email || ""}</div>
                     </div>
 
-                    {/* Status */}
-                    <span style={{
-                      display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:600,
-                      padding:"2px 10px", borderRadius:20, width:"fit-content",
-                      background:"rgba(34,197,94,0.12)", color:"#4ade80", border:"1px solid rgba(34,197,94,0.25)",
-                    }}>
-                      <span style={{ width:5, height:5, borderRadius:"50%", background:"#4ade80", display:"inline-block" }} />
-                      Acceptée
-                    </span>
+                    {/* Status / Actions */}
+                    <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                      <span style={{
+                        display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:600,
+                        padding:"2px 10px", borderRadius:20, width:"fit-content",
+                        background: r.status === "delivered" ? "rgba(59,130,246,0.12)" : "rgba(34,197,94,0.12)",
+                        color: r.status === "delivered" ? "#60a5fa" : "#4ade80",
+                        border: `1px solid ${r.status === "delivered" ? "rgba(59,130,246,0.25)" : "rgba(34,197,94,0.25)"}`,
+                      }}>
+                        <span style={{ width:5, height:5, borderRadius:"50%", background: r.status === "delivered" ? "#60a5fa" : "#4ade80", display:"inline-block" }} />
+                        {r.status === "delivered" ? "Livrée" : "Acceptée"}
+                      </span>
+                      
+                      {r.status !== "delivered" && (
+                        <button onClick={() => handleDeliver(r._id)} style={{
+                          padding:"4px 8px", borderRadius:8, fontSize:9, fontWeight:800, cursor:"pointer",
+                          background:"#22c55e", color:"#fff", border:"none", boxShadow:"0 2px 6px rgba(34,197,94,0.3)"
+                        }}>
+                          LIVRER
+                        </button>
+                      )}
+                    </div>
                   </div>
                 ))}
               </>

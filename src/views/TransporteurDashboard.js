@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { getPendingRequests, getMesRequests, acceptTransportRequest } from "service/restApiTransport";
+import { getPendingRequests, getMesRequests, acceptTransportRequest, deliverTransportRequest } from "service/restApiTransport";
+import { createConversation, sendMessage } from "service/restApiChat";
 
-const Icon = ({ d, size = 20, color = "#fff", sw = 1.8 }) => (
+const Icon = ({ d, size = 16, color = "#fff", sw = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
     <path d={d} />
   </svg>
@@ -18,14 +19,15 @@ const D = {
   user:   "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
   dash:   "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
   star:   "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
+  logout: "M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1",
 };
 
 function BarChart({ data }) {
   const max = Math.max(...data.map(d => d.v), 1);
-  const W = 340, H = 100, bw = 32;
+  const W = 500, H = 180, bw = 38;
   const gap = (W - data.length * bw) / (data.length + 1);
   return (
-    <svg viewBox={`0 0 ${W} ${H + 24}`} style={{ width: "100%" }}>
+    <svg viewBox={`0 0 ${W} ${H + 20}`} style={{ width: "100%" }}>
       <defs>
         <linearGradient id="vg" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#a78bfa" />
@@ -37,9 +39,9 @@ function BarChart({ data }) {
         const x = gap + i * (bw + gap), y = H - bh;
         return (
           <g key={i}>
-            <rect x={x} y={y} width={bw} height={bh} rx={6} fill={d.v > 0 ? "url(#vg)" : "rgba(255,255,255,0.05)"} />
-            <text x={x + bw / 2} y={H + 16} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.35)">{d.l}</text>
-            {d.v > 0 && <text x={x + bw / 2} y={y - 5} textAnchor="middle" fontSize={9} fill="rgba(255,255,255,0.6)" fontWeight="700">{d.v}</text>}
+            <rect x={x} y={y} width={bw} height={bh} rx={4} fill={d.v > 0 ? "url(#vg)" : "rgba(255,255,255,0.05)"} />
+            <text x={x + bw / 2} y={H + 14} textAnchor="middle" fontSize={8} fill="rgba(255,255,255,0.3)">{d.l}</text>
+            {d.v > 0 && <text x={x + bw / 2} y={y - 4} textAnchor="middle" fontSize={8} fill="rgba(255,255,255,0.6)" fontWeight="700">{d.v}</text>}
           </g>
         );
       })}
@@ -50,7 +52,7 @@ function BarChart({ data }) {
 const glass = {
   background: "rgba(255,255,255,0.04)",
   border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 20,
+  borderRadius: 16,
   backdropFilter: "blur(20px)",
   WebkitBackdropFilter: "blur(20px)",
 };
@@ -64,6 +66,12 @@ export default function TransporteurDashboard() {
   const user = React.useMemo(() => {
     try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    window.location.href = "/login";
+  };
 
   useEffect(() => {
     isMounted.current = true;
@@ -79,20 +87,55 @@ export default function TransporteurDashboard() {
     return () => { isMounted.current = false; };
   }, []);
 
-  const handleAccept = async (id) => {
+  const handleAccept = async (id, clientId) => {
     try {
       await acceptTransportRequest(id);
+      try {
+        const convRes = await createConversation(clientId, id);
+        const convId = convRes.data?._id;
+        if (convId) {
+          await sendMessage(convId, { content: "Bonjour, j'ai accepté votre demande de transport. Nous pouvons discuter des détails ici." });
+        }
+      } catch (chatErr) {
+        console.error("Erreur création conversation via API:", chatErr.message);
+      }
       setPending(prev => prev.filter(r => r._id !== id));
       const found = pending.find(r => r._id === id);
       if (found) setAccepted(prev => [{ ...found, status: "accepted" }, ...prev]);
+      alert("Demande acceptée ! ✅");
     } catch { alert("Erreur lors de l'acceptation ❌"); }
+  };
+  
+  const handleDeliver = async (id) => {
+    try {
+      await deliverTransportRequest(id);
+      
+      // Notify client via chat if possible
+      const mission = accepted.find(r => r._id === id);
+      if (mission && mission.client?._id) {
+        try {
+          const convRes = await createConversation(mission.client._id, id);
+          const convId = convRes.data?._id;
+          if (convId) {
+            await sendMessage(convId, { content: "✅ Votre colis a été livré avec succès. Merci de nous avoir fait confiance !" });
+          }
+        } catch (chatErr) {
+          console.error("Erreur notification chat:", chatErr);
+        }
+      }
+
+      setAccepted(prev => prev.map(r => r._id === id ? { ...r, status: "delivered" } : r));
+      alert("Mission marquée comme livrée ! 📦✅");
+    } catch {
+      alert("Erreur lors de la mise à jour du statut ❌");
+    }
   };
 
   const kpis = [
-    { label: "En attente",  value: pending.length,  icon: D.clock, grad: "linear-gradient(135deg,#f59e0b,#d97706)" },
+    { label: "Attente",  value: pending.length,  icon: D.clock, grad: "linear-gradient(135deg,#f59e0b,#d97706)" },
     { label: "Acceptées",   value: accepted.length, icon: D.check, grad: "linear-gradient(135deg,#22c55e,#15803d)" },
     { label: "Total",       value: pending.length + accepted.length, icon: D.truck, grad: "linear-gradient(135deg,#7c3aed,#6d28d9)" },
-    { label: "Note moy.",   value: "4.8 ★",         icon: D.star,  grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
+    { label: "Note",        value: "4.8 ★",         icon: D.star,  grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
   ];
 
   const chartData = (() => {
@@ -109,249 +152,159 @@ export default function TransporteurDashboard() {
   })();
 
   const navItems = [
-    { label: "Dashboard",       to: "/dashboard/transporteur", icon: D.dash, active: true },
-    { label: "Demandes",        to: "/requests",               icon: D.list, active: false },
-    { label: "Mes demandes",    to: "/mes-requests",           icon: D.check,active: false },
-    { label: "Tracking",        to: "/tracking",               icon: D.map,  active: false },
-    { label: "Messagerie",      to: "/chat",                   icon: D.chat, active: false },
-    { label: "Mon Profil",      to: "/profile/transporteur",   icon: D.user, active: false },
+    { label: "Dashboard", to: "/dashboard/transporteur", icon: D.dash, active: true },
+    { label: "Demandes",  to: "/requests",               icon: D.list, active: false },
+    { label: "Messagerie",to: "/chat",                   icon: D.chat, active: false },
+    { label: "Profil",    to: "/profile/transporteur",   icon: D.user, active: false },
   ];
 
   const quickActions = [
-    { label: "Demandes dispo.", to: "/requests",       icon: D.list,  grad: "linear-gradient(135deg,#7c3aed,#6d28d9)" },
-    { label: "Mes demandes",    to: "/mes-requests",   icon: D.check, grad: "linear-gradient(135deg,#22c55e,#15803d)" },
-    { label: "Tracking",        to: "/tracking",       icon: D.map,   grad: "linear-gradient(135deg,#1e293b,#334155)" },
-    { label: "Messagerie",      to: "/chat",           icon: D.chat,  grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
+    { label: "Disponibles", to: "/requests",       icon: D.list,  grad: "linear-gradient(135deg,#7c3aed,#6d28d9)" },
+    { label: "Acceptées",   to: "/mes-requests",   icon: D.check, grad: "linear-gradient(135deg,#22c55e,#15803d)" },
+    { label: "Messagerie",  to: "/chat",           icon: D.chat,  grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
   ];
 
   return (
-    <>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
-      <style>{`
-        * { box-sizing: border-box; }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:translateY(0); } }
-        .fu  { animation: fadeUp 0.45s ease forwards; }
-        .kpi:hover { transform:translateY(-4px) scale(1.02); }
-        .kpi { transition: transform 0.22s ease; }
-        .act:hover { transform:translateY(-3px); filter:brightness(1.1); }
-        .act { transition: transform 0.2s, filter 0.2s; }
-        .nl:hover  { background: rgba(255,255,255,0.1) !important; }
-        .nl  { transition: background 0.15s; }
-        .rh:hover  { background: rgba(255,255,255,0.04) !important; }
-        .rh  { transition: background 0.12s; }
-        .acc-btn:hover { background: rgba(34,197,94,0.25) !important; }
-        .acc-btn { transition: background 0.15s; }
-      `}</style>
-
-      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0a0f1e 0%,#100b2e 50%,#0a0f1e 100%)", fontFamily:"'Inter',sans-serif", color:"#fff" }}>
-
-        {/* Sidebar */}
-        <aside style={{
-          position:"fixed", top:0, left:0, bottom:0, width:240,
-          background:"rgba(255,255,255,0.025)", borderRight:"1px solid rgba(255,255,255,0.07)",
-          padding:"28px 16px", display:"flex", flexDirection:"column", zIndex:100,
-        }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, paddingLeft:8 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(124,58,237,0.45)" }}>
-              <Icon d={D.truck} size={18} />
-            </div>
-            <div>
-              <div style={{ fontSize:15, fontWeight:700 }}>TransportApp</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", marginTop:1 }}>Transporteur Portal</div>
-            </div>
+    <div style={{ minHeight:"100vh", background:"#0a0f1e", fontFamily:"'Inter',sans-serif", color:"#fff", display:"flex" }}>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+      
+      {/* Sidebar - Enhanced */}
+      <aside style={{ width:240, background:"rgba(255,255,255,0.02)", borderRight:"1px solid rgba(255,255,255,0.05)", padding:"30px 20px", display:"flex", flexDirection:"column", position:"fixed", height:"100vh", zIndex:10 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:40, paddingLeft:4 }}>
+          <div style={{ width:36, height:36, borderRadius:10, background:"#7c3aed", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(124,58,237,0.3)" }}>
+            <Icon d={D.truck} size={18} />
           </div>
+          <span style={{ fontSize:18, fontWeight:800, letterSpacing:"-0.5px" }}>T-Portal</span>
+        </div>
 
-          {navItems.map(({ label, to, icon, active }) => (
-            <Link key={to} to={to} className="nl" style={{
-              display:"flex", alignItems:"center", gap:12, padding:"11px 14px", borderRadius:12, marginBottom:4,
-              textDecoration:"none", fontSize:13, fontWeight: active ? 600 : 400,
-              color: active ? "#fff" : "rgba(255,255,255,0.45)",
-              background: active ? "rgba(124,58,237,0.18)" : "transparent",
-              border: active ? "1px solid rgba(124,58,237,0.3)" : "1px solid transparent",
-            }}>
-              <Icon d={icon} size={16} color={active ? "#a78bfa" : "rgba(255,255,255,0.35)"} />
-              {label}
-            </Link>
+        {navItems.map(n => (
+          <Link key={n.to} to={n.to} style={{ display:"flex", alignItems:"center", gap:12, padding:"12px 16px", borderRadius:12, marginBottom:4, textDecoration:"none", fontSize:14, fontWeight:500, color:n.active?"#fff":"rgba(255,255,255,0.4)", background:n.active?"rgba(124,58,237,0.15)":"transparent", transition:"all 0.2s" }}>
+            <Icon d={n.icon} size={16} color={n.active?"#a78bfa":"rgba(255,255,255,0.3)"} />
+            {n.label}
+          </Link>
+        ))}
+        
+        <div style={{ padding:"12px 16px", background:"rgba(255,255,255,0.03)", borderRadius:16, display:"flex", alignItems:"center", gap:10, border:"1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ width:32, height:32, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#a78bfa)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:700 }}>{user?.name?.[0] || "U"}</div>
+          <div style={{ flex:1, overflow:"hidden" }}>
+            <div style={{ fontSize:13, fontWeight:600, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{user?.name || "User"}</div>
+            <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)" }}>Transporteur</div>
+          </div>
+        </div>
+      </aside>
+
+      <main style={{ flex:1, marginLeft:240, padding:"30px 40px" }}>
+        <header style={{ marginBottom:30, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+          <div>
+            <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", marginBottom:2, letterSpacing:1 }}>Dashboard</div>
+            <h1 style={{ fontSize:22, fontWeight:800, margin:0 }}>Bonjour, {user?.name?.split(" ")[0] || "T"}</h1>
+          </div>
+          
+          <button onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", padding:"8px 16px", borderRadius:10, cursor:"pointer", color:"#f87171", fontSize:13, fontWeight:600, transition:"all 0.2s" }}>
+            <Icon d={D.logout} size={14} color="#f87171" />
+            Déconnexion
+          </button>
+        </header>
+
+        {/* KPIs */}
+        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:12, marginBottom:20 }}>
+          {kpis.map(k => (
+            <div key={k.label} style={{ ...glass, padding:"12px" }}>
+              <div style={{ width:24, height:24, borderRadius:6, background:k.grad, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:8 }}>
+                <Icon d={k.icon} size={12} />
+              </div>
+              <div style={{ fontSize:16, fontWeight:800 }}>{loading ? "—" : k.value}</div>
+              <div style={{ fontSize:9, color:"rgba(255,255,255,0.4)" }}>{k.label}</div>
+            </div>
           ))}
+        </div>
 
-          <div style={{ flex:1 }} />
-
-          <div style={{ ...glass, padding:"14px 16px", display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#3b82f6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, flexShrink:0 }}>
-              {(user?.name || user?.email || "T").charAt(0).toUpperCase()}
-            </div>
-            <div style={{ overflow:"hidden" }}>
-              <div style={{ fontSize:12, fontWeight:600, color:"#e2e8f0", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{user?.name || "Transporteur"}</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{user?.email || ""}</div>
-            </div>
-          </div>
-        </aside>
-
-        {/* Main */}
-        <main style={{ marginLeft:240, padding:"32px 36px", minHeight:"100vh" }}>
-
-          {/* Top bar */}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:36 }} className="fu">
-            <div>
-              <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:4 }}>
-                {new Date().toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long" })}
+        {/* Sections */}
+        <div style={{ display:"grid", gridTemplateColumns:"360px 1fr", gap:16 }}>
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            {/* Pending List */}
+            <div style={{ ...glass, padding:"16px" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", marginBottom:12 }}>
+                <h2 style={{ fontSize:13, margin:0 }}>Demandes en attente</h2>
+                <Link to="/requests" style={{ fontSize:10, color:"#a78bfa", textDecoration:"none" }}>Voir tout</Link>
               </div>
-              <h1 style={{ fontSize:26, fontWeight:800, margin:0 }}>
-                Bonjour, {user?.name?.split(" ")[0] || "Transporteur"} 🚚
-              </h1>
+              {loading ? (
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)" }}>Chargement...</div>
+              ) : pending.length === 0 ? (
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.2)", textAlign:"center", padding:20 }}>Aucune demande</div>
+              ) : (
+                pending.slice(0, 4).map(r => (
+                  <div key={r._id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid rgba(255,255,255,0.03)" }}>
+                    <div style={{ flex:1 }}>
+                      <div style={{ fontSize:12, fontWeight:600 }}>{r.pickupLocation} → {r.deliveryLocation}</div>
+                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)" }}>{r.weight}kg · {r.date ? new Date(r.date).toLocaleDateString() : ""}</div>
+                    </div>
+                    <button onClick={() => handleAccept(r._id, r.client?._id)} style={{ padding:"4px 10px", borderRadius:6, border:"none", background:"#22c55e", color:"#fff", fontSize:10, fontWeight:700, cursor:"pointer" }}>Accepter</button>
+                  </div>
+                ))
+              )}
             </div>
-            <Link to="/requests" className="act" style={{
-              display:"flex", alignItems:"center", gap:8, padding:"10px 20px", borderRadius:12,
-              fontSize:13, fontWeight:600, background:"linear-gradient(135deg,#7c3aed,#6d28d9)",
-              color:"#fff", textDecoration:"none", boxShadow:"0 4px 14px rgba(124,58,237,0.45)",
-            }}>
-              <Icon d={D.list} size={15} />
-              Voir les demandes
-            </Link>
-          </div>
 
-          {/* KPI row */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:18, marginBottom:28 }}>
-            {kpis.map((k, i) => (
-              <div key={i} className="kpi" style={{ ...glass, padding:"22px 24px", animation:`fadeUp 0.45s ease ${i*0.07}s both` }}>
-                <div style={{ width:42, height:42, borderRadius:12, background:k.grad, display:"flex", alignItems:"center", justifyContent:"center", marginBottom:14, boxShadow:"0 4px 10px rgba(0,0,0,0.3)" }}>
-                  <Icon d={k.icon} size={19} />
-                </div>
-                <div style={{ fontSize:28, fontWeight:800, lineHeight:1 }}>{loading ? "—" : k.value}</div>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.4)", marginTop:5, fontWeight:500 }}>{k.label}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Bottom grid */}
-          <div style={{ display:"grid", gridTemplateColumns:"1fr 320px", gap:20 }}>
-
-            {/* Pending requests panel */}
-            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-              <div style={{ ...glass, padding:"24px 28px", animation:"fadeUp 0.45s ease 0.3s both" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-                  <div>
-                    <h2 style={{ fontSize:15, fontWeight:700, margin:0 }}>Demandes en attente</h2>
-                    <p style={{ fontSize:12, color:"rgba(255,255,255,0.3)", marginTop:3 }}>{pending.length} demande(s) disponible(s)</p>
-                  </div>
-                  <Link to="/requests" style={{ fontSize:11, fontWeight:600, color:"#a78bfa", textDecoration:"none", background:"rgba(124,58,237,0.12)", border:"1px solid rgba(124,58,237,0.25)", padding:"5px 12px", borderRadius:8 }}>Toutes →</Link>
-                </div>
-
-                {loading ? (
-                  <div style={{ textAlign:"center", color:"rgba(255,255,255,0.25)", padding:"40px 0", fontSize:13 }}>Chargement...</div>
-                ) : pending.length === 0 ? (
-                  <div style={{ textAlign:"center", padding:"40px 0" }}>
-                    <div style={{ fontSize:36, marginBottom:10 }}>✅</div>
-                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:13 }}>Aucune demande en attente</div>
-                  </div>
-                ) : (
-                  pending.slice(0, 5).map((r, i) => (
-                    <div key={r._id || i} className="rh" style={{
-                      display:"flex", alignItems:"center", justifyContent:"space-between",
-                      padding:"12px 10px", borderRadius:12,
-                      borderBottom: i < Math.min(4, pending.length - 1) ? "1px solid rgba(255,255,255,0.05)" : "none",
-                    }}>
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:13, fontWeight:600, color:"#e2e8f0", marginBottom:3, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                          {r.pickupLocation} → {r.deliveryLocation}
-                        </div>
-                        <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)", display:"flex", gap:12 }}>
-                          <span>📅 {r.date ? new Date(r.date).toLocaleDateString("fr-FR") : "—"}</span>
-                          <span>⚖️ {r.weight ? `${r.weight} kg` : "—"}</span>
-                          {r.isSensitive === "oui" && <span style={{ color:"#fca5a5" }}>⚠️ Fragile</span>}
+            {/* Accepted List */}
+            <div style={{ ...glass, padding:"16px" }}>
+              <h2 style={{ fontSize:13, margin:"0 0 12px" }}>Mes missions</h2>
+              {loading ? null : accepted.length === 0 ? (
+                <div style={{ fontSize:11, color:"rgba(255,255,255,0.2)", textAlign:"center", padding:10 }}>Rien à afficher</div>
+              ) : (
+                accepted.slice(0, 3).map(r => (
+                  <div key={r._id} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"8px 0", borderBottom:"1px solid rgba(255,255,255,0.03)" }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+                      <div style={{ width:6, height:6, borderRadius:"50%", background: r.status === "delivered" ? "#3b82f6" : "#22c55e" }} />
+                      <div style={{ fontSize:11 }}>
+                        <div style={{ fontWeight:600 }}>{r.pickupLocation} → {r.deliveryLocation}</div>
+                        <div style={{ fontSize:9, color: r.status === "delivered" ? "#60a5fa" : "rgba(255,255,255,0.3)" }}>
+                          {r.status === "delivered" ? "Livrée" : "En cours"}
                         </div>
                       </div>
-                      <button className="acc-btn" onClick={() => handleAccept(r._id)} style={{
-                        marginLeft:12, padding:"6px 14px", borderRadius:8, fontSize:11, fontWeight:700,
-                        background:"rgba(34,197,94,0.15)", border:"1px solid rgba(34,197,94,0.3)",
-                        color:"#4ade80", cursor:"pointer", whiteSpace:"nowrap", flexShrink:0,
-                      }}>
-                        ✓ Accepter
+                    </div>
+                    {r.status !== "delivered" && (
+                      <button 
+                        onClick={() => handleDeliver(r._id)} 
+                        style={{ padding:"4px 8px", borderRadius:6, border:"1px solid #22c55e", background:"transparent", color:"#22c55e", fontSize:9, fontWeight:700, cursor:"pointer", transition:"0.2s" }}
+                        onMouseOver={(e) => { e.currentTarget.style.background = "#22c55e"; e.currentTarget.style.color = "#fff"; }}
+                        onMouseOut={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#22c55e"; }}
+                      >
+                        Livré
                       </button>
-                    </div>
-                  ))
-                )}
-              </div>
-
-              {/* Accepted requests */}
-              <div style={{ ...glass, padding:"24px 28px", animation:"fadeUp 0.45s ease 0.4s both" }}>
-                <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:18 }}>
-                  <h2 style={{ fontSize:15, fontWeight:700, margin:0 }}>Mes demandes acceptées</h2>
-                  <Link to="/mes-requests" style={{ fontSize:11, fontWeight:600, color:"#4ade80", textDecoration:"none", background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.25)", padding:"5px 12px", borderRadius:8 }}>Toutes →</Link>
-                </div>
-                {loading ? (
-                  <div style={{ textAlign:"center", color:"rgba(255,255,255,0.25)", padding:"24px 0", fontSize:13 }}>Chargement...</div>
-                ) : accepted.length === 0 ? (
-                  <div style={{ textAlign:"center", padding:"24px 0" }}>
-                    <div style={{ color:"rgba(255,255,255,0.3)", fontSize:13 }}>Aucune demande acceptée</div>
+                    )}
                   </div>
-                ) : (
-                  accepted.slice(0, 4).map((r, i) => (
-                    <div key={r._id || i} className="rh" style={{
-                      display:"flex", alignItems:"center", gap:12, padding:"10px 8px", borderRadius:10,
-                      borderBottom: i < Math.min(3, accepted.length - 1) ? "1px solid rgba(255,255,255,0.05)" : "none",
-                    }}>
-                      <div style={{ width:8, height:8, borderRadius:"50%", background:"#4ade80", flexShrink:0 }} />
-                      <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontSize:12, fontWeight:600, color:"#e2e8f0", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
-                          {r.pickupLocation} → {r.deliveryLocation}
-                        </div>
-                        <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", marginTop:2 }}>
-                          {r.client?.name || r.client?.email || "Client"} · {r.weight ? `${r.weight} kg` : ""}
-                        </div>
-                      </div>
-                      <span style={{ fontSize:10, fontWeight:600, color:"#4ade80", background:"rgba(34,197,94,0.12)", border:"1px solid rgba(34,197,94,0.25)", padding:"2px 8px", borderRadius:20, flexShrink:0 }}>Acceptée</span>
-                    </div>
-                  ))
-                )}
-              </div>
+                ))
+              )}
             </div>
 
-            {/* Right column */}
-            <div style={{ display:"flex", flexDirection:"column", gap:20 }}>
-              {/* Chart */}
-              <div style={{ ...glass, padding:"22px 24px", animation:"fadeUp 0.45s ease 0.35s both" }}>
-                <h2 style={{ fontSize:14, fontWeight:700, margin:"0 0 16px" }}>Activité (7 jours)</h2>
-                <BarChart data={chartData} />
-              </div>
-
-              {/* Quick actions */}
-              <div style={{ ...glass, padding:"22px 24px", animation:"fadeUp 0.45s ease 0.42s both" }}>
-                <h2 style={{ fontSize:14, fontWeight:700, margin:"0 0 14px" }}>Actions rapides</h2>
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                  {quickActions.map(({ label, to, icon, grad }) => (
-                    <Link key={to} to={to} className="act" style={{
-                      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-                      gap:8, padding:"16px 10px", borderRadius:14, minHeight:76,
-                      background:grad, color:"#fff", textDecoration:"none",
-                      fontSize:11, fontWeight:600, textAlign:"center",
-                      boxShadow:"0 4px 12px rgba(0,0,0,0.25)",
-                    }}>
-                      <Icon d={icon} size={20} />
-                      {label}
-                    </Link>
-                  ))}
-                </div>
-              </div>
-
-              {/* Stats summary */}
-              <div style={{ ...glass, padding:"20px 24px", animation:"fadeUp 0.45s ease 0.48s both" }}>
-                <h2 style={{ fontSize:14, fontWeight:700, margin:"0 0 14px" }}>Résumé</h2>
-                {[
-                  { label:"Taux d'acceptation", value: pending.length + accepted.length > 0 ? `${Math.round((accepted.length / (pending.length + accepted.length)) * 100)}%` : "—" },
-                  { label:"Moy. colis/jour", value: chartData.reduce((s,d) => s + d.v, 0) > 0 ? (chartData.reduce((s,d) => s + d.v, 0) / 7).toFixed(1) : "0" },
-                  { label:"Fragile traités", value: accepted.filter(r => r.isSensitive === "oui").length },
-                ].map(({ label, value }) => (
-                  <div key={label} style={{ display:"flex", justifyContent:"space-between", padding:"9px 0", borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
-                    <span style={{ fontSize:12, color:"rgba(255,255,255,0.4)" }}>{label}</span>
-                    <span style={{ fontSize:13, fontWeight:700, color:"#a78bfa" }}>{loading ? "—" : value}</span>
-                  </div>
+            {/* Quick Actions moved here */}
+            <div style={{ ...glass, padding:"16px" }}>
+              <h2 style={{ fontSize:12, margin:"0 0 10px" }}>Actions rapides</h2>
+              <div style={{ display:"grid", gridTemplateColumns:"repeat(3, 1fr)", gap:8 }}>
+                {quickActions.map(a => (
+                  <Link key={a.label} to={a.to} style={{ display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6, padding:"12px 8px", borderRadius:10, background:a.grad, textDecoration:"none", color:"#fff", textAlign:"center" }}>
+                    <Icon d={a.icon} size={16} />
+                    <span style={{ fontSize:10, fontWeight:700 }}>{a.label}</span>
+                  </Link>
                 ))}
               </div>
             </div>
           </div>
-        </main>
-      </div>
-    </>
+
+          {/* Right Column - Activity focus */}
+          <div style={{ display:"flex", flexDirection:"column", gap:16 }}>
+            <div style={{ ...glass, padding:"24px", flex:1, display:"flex", flexDirection:"column" }}>
+              <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
+                <h2 style={{ fontSize:16, fontWeight:700, margin:0 }}>Activité de transport</h2>
+                <div style={{ fontSize:10, color:"rgba(255,255,255,0.4)" }}>7 derniers jours</div>
+              </div>
+              <div style={{ flex:1, display:"flex", alignItems:"center" }}>
+                <BarChart data={chartData} />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

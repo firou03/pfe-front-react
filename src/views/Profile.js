@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { getUserById } from "service/restApiUser";
 
 const Ic = ({ d, size = 16, color = "rgba(255,255,255,0.35)", sw = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
@@ -20,26 +21,67 @@ const D = {
 const glass = { background:"rgba(255,255,255,0.04)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:20, backdropFilter:"blur(20px)", WebkitBackdropFilter:"blur(20px)" };
 
 export default function Profile() {
+  const { userId } = useParams();
   const safeParseUser = () => { try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; } };
-  const [user, setUser] = useState(safeParseUser());
+  const currentUser = safeParseUser();
+  const [user, setUser] = useState(currentUser);
+  const [loading, setLoading] = useState(!!userId);
   const [isEditing, setIsEditing] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  
+  const isOtherProfile = userId && userId !== currentUser?._id;
+
   const [formData, setFormData] = useState({
-    phone: user?.phone || user?.telephone || "",
-    address: user?.address || user?.adresse || "",
-    city: user?.city || user?.ville || "",
-    postalCode: user?.postalCode || user?.zipCode || "",
-    preference: user?.preference || "",
+    phone: "",
+    address: "",
+    city: "",
+    postalCode: "",
+    preference: "",
   });
+
+  useEffect(() => {
+    if (isOtherProfile) {
+      setLoading(true);
+      getUserById(userId)
+        .then(res => {
+          const userData = res.data;
+          setUser(userData);
+          setFormData({
+            phone: userData?.phone || userData?.telephone || "",
+            address: userData?.address || userData?.adresse || "",
+            city: userData?.city || userData?.ville || "",
+            postalCode: userData?.postalCode || userData?.zipCode || "",
+            preference: userData?.preference || "",
+          });
+        })
+        .catch(err => {
+          console.error("Error fetching user:", err);
+          alert("Erreur lors du chargement du profil.");
+        })
+        .finally(() => setLoading(false));
+    } else {
+      setUser(currentUser);
+      setFormData({
+        phone: currentUser?.phone || currentUser?.telephone || "",
+        address: currentUser?.address || currentUser?.adresse || "",
+        city: currentUser?.city || currentUser?.ville || "",
+        postalCode: currentUser?.postalCode || currentUser?.zipCode || "",
+        preference: currentUser?.preference || "",
+      });
+      setLoading(false);
+    }
+  }, [userId, isOtherProfile, currentUser]);
 
   const role = user?.role || "client";
   const isTransporteur = role === "transporteur";
   const fullName = user?.name || [user?.firstName, user?.lastName].filter(Boolean).join(" ") || "Utilisateur";
-  const isProfileIncomplete = !formData.phone || !formData.address || !formData.city || !formData.postalCode || !formData.preference;
+  const isProfileIncomplete = !isOtherProfile && (!formData.phone || !formData.address || !formData.city || !formData.postalCode || !formData.preference);
 
   useEffect(() => { setShowNotification(isProfileIncomplete); }, [isProfileIncomplete]);
 
-  const accent = isTransporteur
+  const appRole = currentUser?.role || "client";
+  const isAppTransporteur = appRole === "transporteur";
+  const accent = isAppTransporteur
     ? { from:"#7c3aed", to:"#6d28d9", glow:"rgba(124,58,237,0.4)", active:"rgba(124,58,237,0.18)", activeBorder:"rgba(124,58,237,0.3)", icon:"#a78bfa" }
     : { from:"#3b82f6", to:"#2563eb", glow:"rgba(59,130,246,0.4)", active:"rgba(59,130,246,0.18)", activeBorder:"rgba(59,130,246,0.25)", icon:"#60a5fa" };
 
@@ -161,11 +203,20 @@ export default function Profile() {
 
           {/* Header */}
           <div style={{ marginBottom:32 }} className="fu">
-            <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:6 }}>Compte</div>
-            <h1 style={{ fontSize:24, fontWeight:800, margin:0 }}>Mon Profil</h1>
-            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>Gérez vos informations personnelles</p>
+            <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:6 }}>
+              {isOtherProfile ? "Profil Public" : "Compte"}
+            </div>
+            <h1 style={{ fontSize:24, fontWeight:800, margin:0 }}>
+              {isOtherProfile ? `Profil de ${fullName}` : "Mon Profil"}
+            </h1>
+            <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>
+              {isOtherProfile ? "Informations du partenaire de transport" : "Gérez vos informations personnelles"}
+            </p>
           </div>
 
+          {loading ? (
+             <div style={{ ...glass, padding: 40, textAlign: "center", color: "rgba(255,255,255,0.3)" }}>Chargement...</div>
+          ) : (
           <div style={{ display:"grid", gridTemplateColumns:"260px 1fr", gap:24 }}>
 
             {/* Avatar card */}
@@ -179,17 +230,19 @@ export default function Profile() {
                 {isTransporteur ? "🚚 Transporteur" : "👤 Client"}
               </span>
 
-              {isProfileIncomplete && (
+              {isProfileIncomplete && !isOtherProfile && (
                 <div style={{ marginTop:18, padding:"10px 14px", borderRadius:12, background:"rgba(251,191,36,0.08)", border:"1px solid rgba(251,191,36,0.2)", fontSize:11, color:"#fbbf24", lineHeight:1.5 }}>
                   ⚠️ Profil incomplet — complétez vos infos
                 </div>
               )}
 
-              <div style={{ marginTop:20, paddingTop:20, borderTop:"1px solid rgba(255,255,255,0.06)" }}>
-                <Link to={isTransporteur ? "/requests" : "/client"} style={{ display:"block", padding:"10px 0", borderRadius:12, background:`linear-gradient(135deg,${accent.from},${accent.to})`, color:"#fff", textDecoration:"none", fontSize:12, fontWeight:600, boxShadow:`0 4px 10px ${accent.glow}` }}>
-                  {isTransporteur ? "Voir les demandes" : "Nouvelle demande"}
-                </Link>
-              </div>
+              {!isOtherProfile && (
+                <div style={{ marginTop:20, paddingTop:20, borderTop:"1px solid rgba(255,255,255,0.06)" }}>
+                  <Link to={isTransporteur ? "/requests" : "/client"} style={{ display:"block", padding:"10px 0", borderRadius:12, background:`linear-gradient(135deg,${accent.from},${accent.to})`, color:"#fff", textDecoration:"none", fontSize:12, fontWeight:600, boxShadow:`0 4px 10px ${accent.glow}` }}>
+                    {isTransporteur ? "Voir les demandes" : "Nouvelle demande"}
+                  </Link>
+                </div>
+              )}
             </div>
 
             {/* Info card */}
@@ -199,7 +252,7 @@ export default function Profile() {
                   <h2 style={{ fontSize:16, fontWeight:700, margin:0 }}>Coordonnées</h2>
                   <p style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginTop:3 }}>Vos informations de contact</p>
                 </div>
-                {!isEditing ? (
+                {!isOtherProfile && (!isEditing ? (
                   <button onClick={() => setIsEditing(true)} style={{ display:"flex", alignItems:"center", gap:7, padding:"8px 16px", borderRadius:10, background:`linear-gradient(135deg,${accent.from},${accent.to})`, border:"none", color:"#fff", fontSize:12, fontWeight:600, cursor:"pointer", boxShadow:`0 4px 10px ${accent.glow}` }}>
                     <Ic d={D.edit} size={13} color="#fff" sw={2} /> Modifier
                   </button>
@@ -212,7 +265,7 @@ export default function Profile() {
                       Annuler
                     </button>
                   </div>
-                )}
+                ))}
               </div>
 
               <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:16 }}>
@@ -248,6 +301,7 @@ export default function Profile() {
               )}
             </div>
           </div>
+          )}
         </main>
       </div>
     </>

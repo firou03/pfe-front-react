@@ -41,3 +41,8 @@ export const getClientRequests = () => {
 export const updateRequestLocation = (id, data) => {
   return axios.put(`${API_URL}/update-location/${id}`, data, { headers: headers() });
 };
+
+// DELIVER request
+export const deliverTransportRequest = (id) => {
+  return axios.put(`${API_URL}/deliver/${id}`, {}, { headers: headers() });
+};

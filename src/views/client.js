@@ -75,6 +75,12 @@ export default function CardClient() {
     date: "", weight: "", isSensitive: "non",
   });
 
+  const minDateStr = React.useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2);
+    return d.toISOString().split("T")[0];
+  }, []);
+
   useEffect(() => () => { isMounted.current = false; }, []);
 
   const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -305,7 +311,7 @@ export default function CardClient() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:24 }}>
                   <div>
                     <label style={lbl}>Date de livraison souhaitée</label>
-                    <input type="date" name="date" value={formData.date} onChange={handleChange} style={inp} />
+                    <input type="date" name="date" value={formData.date} onChange={handleChange} style={inp} min={minDateStr} />
                   </div>
                   <div>
                     <label style={lbl}>Poids du colis (kg)</label>
