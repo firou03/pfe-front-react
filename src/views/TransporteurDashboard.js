@@ -154,6 +154,8 @@ export default function TransporteurDashboard() {
   const navItems = [
     { label: "Dashboard", to: "/dashboard/transporteur", icon: D.dash, active: true },
     { label: "Demandes",  to: "/requests",               icon: D.list, active: false },
+    { label: "Mes demandes", to: "/mes-requests",        icon: D.check, active: false },
+    { label: "Historique", to: "/historique",            icon: D.clock, active: false },
     { label: "Messagerie",to: "/chat",                   icon: D.chat, active: false },
     { label: "Profil",    to: "/profile/transporteur",   icon: D.user, active: false },
   ];
@@ -161,6 +163,7 @@ export default function TransporteurDashboard() {
   const quickActions = [
     { label: "Disponibles", to: "/requests",       icon: D.list,  grad: "linear-gradient(135deg,#7c3aed,#6d28d9)" },
     { label: "Acceptées",   to: "/mes-requests",   icon: D.check, grad: "linear-gradient(135deg,#22c55e,#15803d)" },
+    { label: "Historique",  to: "/historique",     icon: D.clock, grad: "linear-gradient(135deg,#f59e0b,#d97706)" },
     { label: "Messagerie",  to: "/chat",           icon: D.chat,  grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
   ];
 

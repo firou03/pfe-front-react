@@ -5,7 +5,7 @@ const API_URL = "http://localhost:5000/users";
 
 // REGISTER — JSON ou FormData (ex. permis transporteur en fichier)
 export const registerUser = (data) => {
-  return axios.post(`${API_URL}/CreateUser`, data);
+  return axios.post(`${API_URL}/createUser`, data);
 };
 
 // LOGIN
@@ -36,4 +36,25 @@ export async function updateUser(id, userData) {
 // GET BY ID
 export async function getUserById(id) {
   return await axios.get(`${API_URL}/getUserById/${id}`);
+}
+
+// FORGOT PASSWORD
+export async function forgotPassword(email) {
+  return await axios.post(`http://localhost:5000/api/auth/forgot-password`, { email });
+}
+
+// RESET PASSWORD
+export async function resetPassword(token, password) {
+  return await axios.put(`http://localhost:5000/api/auth/reset-password/${token}`, { password });
+}
+
+// UPLOAD PROFILE PICTURE
+export async function uploadProfilePicture(userId, file) {
+  const formData = new FormData();
+  formData.append('user_image', file);
+  return await axios.put(`${API_URL}/updateProfilePicture/${userId}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
 }

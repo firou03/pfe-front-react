@@ -116,6 +116,13 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
     }
   };
 
+  const getAvatarUrl = (user) => {
+    if (user?.user_image) {
+      return `http://localhost:5000/images/${user.user_image}`;
+    }
+    return null;
+  };
+
   const groupMessagesByDate = (messages) => {
     const groups = {};
     messages.forEach(message => {
@@ -161,7 +168,15 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
       <div style={headerStyle}>
         <div style={userInfoStyle}>
           <div style={avatarStyle}>
-            {otherUser?.name?.charAt(0)?.toUpperCase() || "U"}
+            {getAvatarUrl(otherUser) ? (
+              <img 
+                src={getAvatarUrl(otherUser)} 
+                alt={otherUser?.name} 
+                style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+              />
+            ) : (
+              otherUser?.name?.charAt(0)?.toUpperCase() || "U"
+            )}
           </div>
           <div>
             <div style={userNameStyle}>
@@ -185,15 +200,34 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
             
             {/* Messages for this date */}
             {dateMessages.map((message) => {
-              const isOwn = message.senderId === currentUser._id;
+              const isOwn = message.senderId?._id === currentUser._id || message.senderId === currentUser._id;
+              const senderInfo = typeof message.senderId === 'object' ? message.senderId : { _id: message.senderId };
+              const senderImage = getAvatarUrl(senderInfo);
+              
               return (
                 <div
                   key={message._id}
                   style={{
                     ...messageWrapperStyle,
                     justifyContent: isOwn ? "flex-end" : "flex-start",
+                    alignItems: "flex-end",
+                    gap: "8px",
                   }}
                 >
+                  {!isOwn && (
+                    <div style={{...avatarStyle, width: "32px", height: "32px", fontSize: "14px"}}>
+                      {senderImage ? (
+                        <img 
+                          src={senderImage} 
+                          alt={senderInfo?.name} 
+                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+                        />
+                      ) : (
+                        senderInfo?.name?.charAt(0)?.toUpperCase() || "U"
+                      )}
+                    </div>
+                  )}
+                  
                   <div
                     style={{
                       ...messageBubbleStyle,
@@ -215,6 +249,20 @@ export default function ChatBox({ conversationId, currentUser, otherUser }) {
                       {formatTime(message.createdAt)}
                     </div>
                   </div>
+
+                  {isOwn && (
+                    <div style={{...avatarStyle, width: "32px", height: "32px", fontSize: "14px"}}>
+                      {getAvatarUrl(currentUser) ? (
+                        <img 
+                          src={getAvatarUrl(currentUser)} 
+                          alt={currentUser?.name} 
+                          style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+                        />
+                      ) : (
+                        currentUser?.name?.charAt(0)?.toUpperCase() || "U"
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

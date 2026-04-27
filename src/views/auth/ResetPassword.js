@@ -1,17 +1,44 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { forgotPassword } from "../../service/restApiUser";
+import { useParams, useHistory } from "react-router-dom";
+import { resetPassword } from "../../service/restApiUser";
 
-export default function Forget() {
-  const [email, setEmail] = useState("");
+export default function ResetPassword() {
+  const { token } = useParams();
+  const history = useHistory();
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email) {
-      setError("Veuillez entrer votre email");
+    
+    // Validate passwords match
+    if (password !== confirmPassword) {
+      setError("Les mots de passe ne correspondent pas");
+      return;
+    }
+    
+    // Validate password requirements
+    if (password.length < 8) {
+      setError("Le mot de passe doit contenir au moins 8 caractères");
+      return;
+    }
+    
+    // Check for uppercase, lowercase, and number
+    if (!/[A-Z]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une lettre majuscule");
+      return;
+    }
+    
+    if (!/[a-z]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins une lettre minuscule");
+      return;
+    }
+    
+    if (!/[0-9]/.test(password)) {
+      setError("Le mot de passe doit contenir au moins un chiffre");
       return;
     }
 
@@ -20,9 +47,9 @@ export default function Forget() {
     setMessage("");
 
     try {
-      const response = await forgotPassword(email);
-      setMessage(response.data.message || "Un lien de réinitialisation a été envoyé !");
-      setEmail("");
+      const response = await resetPassword(token, password);
+      setMessage(response.data.message || "Mot de passe réinitialisé !");
+      setTimeout(() => history.push("/auth/login"), 3000);
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.message || "Une erreur est survenue.");
@@ -39,11 +66,11 @@ export default function Forget() {
             <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-200 border-0">
               <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
                 <div className="text-blueGray-400 text-center mb-3 font-bold mt-4">
-                  <small>Mot de passe oublié</small>
+                  <small>Réinitialiser le mot de passe</small>
                 </div>
                 {message && (
                   <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span className="block sm:inline text-xs">{message}</span>
+                    <span className="block sm:inline text-xs">{message} Redirection...</span>
                   </div>
                 )}
                 {error && (
@@ -54,14 +81,28 @@ export default function Forget() {
                 <form onSubmit={handleSubmit}>
                   <div className="relative w-full mb-3 mt-4">
                     <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                      Email
+                      Nouveau mot de passe
                     </label>
                     <input
-                      type="email"
+                      type="password"
                       className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="********"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                  </div>
+
+                  <div className="relative w-full mb-3 mt-4">
+                    <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
+                      Confirmer le mot de passe
+                    </label>
+                    <input
+                      type="password"
+                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
+                      placeholder="********"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       required
                     />
                   </div>
@@ -72,22 +113,10 @@ export default function Forget() {
                       type="submit"
                       disabled={isSubmitting}
                     >
-                      {isSubmitting ? "Envoi en cours..." : "Réinitialiser"}
+                      {isSubmitting ? "Réinitialisation..." : "Changer mon mot de passe"}
                     </button>
                   </div>
                 </form>
-              </div>
-            </div>
-            <div className="flex flex-wrap mt-6 relative">
-              <div className="w-1/2">
-                <Link to="/auth/login" className="text-blueGray-200">
-                  <small>Se connecter</small>
-                </Link>
-              </div>
-              <div className="w-1/2 text-right">
-                <Link to="/auth/register" className="text-blueGray-200">
-                  <small>Créer un compte</small>
-                </Link>
               </div>
             </div>
           </div>

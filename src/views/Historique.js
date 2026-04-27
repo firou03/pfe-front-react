@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getMesRequests, deliverTransportRequest } from "service/restApiTransport";
-import { createConversation, sendMessage } from "service/restApiChat";
-import RatingModal from "components/RatingModal";
+import { getMesRequests } from "service/restApiTransport";
 
 const Ic = ({ d, size = 16, color = "rgba(255,255,255,0.35)", sw = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
@@ -21,6 +19,7 @@ const D = {
   check: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
   clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
   box:   "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
+  check2: "M5 13l4 4L19 7",
 };
 
 const glass = {
@@ -34,18 +33,17 @@ const glass = {
 const navItems = [
   { label: "Dashboard",        to: "/dashboard/transporteur", icon: D.dash,  active: false },
   { label: "Demandes dispo.",  to: "/requests",               icon: D.list,  active: false },
-  { label: "Mes demandes",     to: "/mes-requests",           icon: D.check, active: true  },
-  { label: "Historique",       to: "/historique",             icon: D.clock, active: false },
+  { label: "Mes demandes",     to: "/mes-requests",           icon: D.check, active: false },
+  { label: "Historique",       to: "/historique",             icon: D.clock, active: true  },
   { label: "Tracking",         to: "/tracking",               icon: D.map,   active: false },
   { label: "Messagerie",       to: "/chat",                   icon: D.chat,  active: false },
   { label: "Mon Profil",       to: "/profile/transporteur",   icon: D.user,  active: false },
 ];
 
-export default function MesRequests() {
+export default function Historique() {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
-  const [ratingModal, setRatingModal] = useState({ isOpen: false, request: null });
 
   const currentUser = React.useMemo(() => {
     try { return JSON.parse(localStorage.getItem("user") || "{}"); } catch { return {}; }
@@ -53,7 +51,7 @@ export default function MesRequests() {
 
   const fetchRequests = () => {
     getMesRequests()
-      .then(res => setRequests(res.data || []))
+      .then(res => setRequests((res.data || []).filter(r => r.status === "delivered")))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));
   };
@@ -62,50 +60,13 @@ export default function MesRequests() {
     fetchRequests();
   }, []);
 
-  const handleDeliver = async (id) => {
-    try {
-      await deliverTransportRequest(id);
-      
-      // Notify client via chat if possible
-      const mission = requests.find(r => r._id === id);
-      if (mission && mission.client?._id) {
-        try {
-          const convRes = await createConversation(mission.client._id, id);
-          const convId = convRes.data?._id;
-          if (convId) {
-            await sendMessage(convId, { content: "✅ Votre colis a été livré avec succès. Merci de nous avoir fait confiance !" });
-          }
-        } catch (chatErr) {
-          console.error("Erreur notification chat:", chatErr);
-        }
-      }
+  const filtered = filter === "all" ? requests
+    : requests.filter(r => r.isSensitive === (filter === "fragile" ? "oui" : "non"));
 
-      // Remove from current list (since we filter out delivered requests)
-      const deliveredRequest = requests.find(r => r._id === id);
-      setRequests(prev => prev.filter(r => r._id !== id));
-      alert("Mission marquée comme livrée ! 📦✅");
-      
-      // Open rating modal
-      if (deliveredRequest) {
-        setRatingModal({ 
-          isOpen: true, 
-          request: deliveredRequest 
-        });
-      }
-    } catch {
-      alert("Erreur lors de la mise à jour du statut ❌");
-    }
-  };
-
-  const filtered = filter === "all" 
-    ? requests.filter(r => r.status !== "delivered")
-    : requests.filter(r => r.status !== "delivered" && r.isSensitive === (filter === "fragile" ? "oui" : "non"));
-
-  const activeRequests = requests.filter(r => r.status !== "delivered");
   const stats = [
-    { label: "Total acceptées", value: activeRequests.length,                                          color: "#60a5fa", bg: "rgba(59,130,246,0.15)",  border: "rgba(59,130,246,0.25)"  },
-    { label: "Non sensibles",   value: activeRequests.filter(r => r.isSensitive !== "oui").length,    color: "#4ade80", bg: "rgba(34,197,94,0.15)",   border: "rgba(34,197,94,0.25)"   },
-    { label: "Fragiles",        value: activeRequests.filter(r => r.isSensitive === "oui").length,    color: "#f87171", bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.25)"   },
+    { label: "Livraisons complètes", value: requests.length,                                          color: "#60a5fa", bg: "rgba(59,130,246,0.15)",  border: "rgba(59,130,246,0.25)"  },
+    { label: "Non sensibles",   value: requests.filter(r => r.isSensitive !== "oui").length,    color: "#4ade80", bg: "rgba(34,197,94,0.15)",   border: "rgba(34,197,94,0.25)"   },
+    { label: "Fragiles",        value: requests.filter(r => r.isSensitive === "oui").length,    color: "#f87171", bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.25)"   },
   ];
 
   return (
@@ -175,16 +136,16 @@ export default function MesRequests() {
           <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:32 }} className="fu">
             <div>
               <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:6 }}>Transporteur</div>
-              <h1 style={{ fontSize:24, fontWeight:800, margin:0 }}>Mes demandes en cours</h1>
-              <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>Livraisons actives et à compléter</p>
+              <h1 style={{ fontSize:24, fontWeight:800, margin:0 }}>Historique d'activité</h1>
+              <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>Toutes vos livraisons complétées</p>
             </div>
-            <Link to="/requests" style={{
+            <Link to="/mes-requests" style={{
               display:"flex", alignItems:"center", gap:8, padding:"10px 20px", borderRadius:12,
               fontSize:13, fontWeight:600, background:"linear-gradient(135deg,#7c3aed,#6d28d9)",
               color:"#fff", textDecoration:"none", boxShadow:"0 4px 14px rgba(124,58,237,0.4)",
             }}>
-              <Ic d={D.list} size={15} color="#fff" />
-              Voir les demandes dispo.
+              <Ic d={D.check} size={15} color="#fff" />
+              Mes demandes en cours
             </Link>
           </div>
 
@@ -205,7 +166,7 @@ export default function MesRequests() {
 
             {/* Table header row */}
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-              <h2 style={{ fontSize:15, fontWeight:700, margin:0 }}>Liste des demandes</h2>
+              <h2 style={{ fontSize:15, fontWeight:700, margin:0 }}>Livraisons</h2>
               {/* Filters */}
               <div style={{ display:"flex", gap:8 }}>
                 {[
@@ -229,16 +190,16 @@ export default function MesRequests() {
             ) : filtered.length === 0 ? (
               <div style={{ textAlign:"center", padding:"60px 0" }}>
                 <div style={{ fontSize:40, marginBottom:12 }}>📭</div>
-                <div style={{ color:"rgba(255,255,255,0.3)", fontSize:13 }}>Aucune demande trouvée</div>
-                <Link to="/requests" style={{ display:"inline-block", marginTop:16, padding:"8px 22px", borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", textDecoration:"none", fontSize:12, fontWeight:600 }}>
-                  Voir les demandes disponibles
+                <div style={{ color:"rgba(255,255,255,0.3)", fontSize:13 }}>Aucune livraison trouvée</div>
+                <Link to="/mes-requests" style={{ display:"inline-block", marginTop:16, padding:"8px 22px", borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", color:"#fff", textDecoration:"none", fontSize:12, fontWeight:600 }}>
+                  Voir mes demandes en cours
                 </Link>
               </div>
             ) : (
               <>
                 {/* Column headers */}
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 110px 120px 130px", gap:8, padding:"0 12px 10px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                  {["Départ","Livraison","Date","Poids","Sensible","Client","Statut / Actions"].map(h => (
+                  {["Départ","Livraison","Date","Poids","Sensible","Client","Actions"].map(h => (
                     <span key={h} style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{h}</span>
                   ))}
                 </div>
@@ -246,7 +207,7 @@ export default function MesRequests() {
                 {/* Rows */}
                 {filtered.map((r, i) => (
                   <div key={r._id || i} className="rh" style={{
-                    display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 110px 120px 100px",
+                    display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 110px 120px 130px",
                     gap:8, padding:"13px 12px", borderRadius:10,
                     borderBottom: i < filtered.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
                   }}>
@@ -273,43 +234,28 @@ export default function MesRequests() {
                       <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.client?.email || ""}</div>
                     </div>
 
-                    {/* Status / Actions */}
+                    {/* Status */}
                     <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                       <span style={{
                         display:"inline-flex", alignItems:"center", gap:4, fontSize:10, fontWeight:600,
                         padding:"2px 10px", borderRadius:20, width:"fit-content",
-                        background: "rgba(34,197,94,0.12)",
-                        color: "#4ade80",
-                        border: "1px solid rgba(34,197,94,0.25)",
+                        background: "rgba(59,130,246,0.12)",
+                        color: "#60a5fa",
+                        border: "1px solid rgba(59,130,246,0.25)",
                       }}>
-                        <span style={{ width:5, height:5, borderRadius:"50%", background: "#4ade80", display:"inline-block" }} />
-                        Acceptée
+                        <span style={{ width:5, height:5, borderRadius:"50%", background: "#60a5fa", display:"inline-block" }} />
+                        ✓ Livrée
                       </span>
-                      
-                      <button onClick={() => handleDeliver(r._id)} style={{
-                        padding:"4px 8px", borderRadius:8, fontSize:9, fontWeight:800, cursor:"pointer",
-                        background:"#22c55e", color:"#fff", border:"none", boxShadow:"0 2px 6px rgba(34,197,94,0.3)"
-                      }}>
-                        LIVRER
-                      </button>
                     </div>
                   </div>
                 ))}
               </>
             )}
           </div>
+
         </main>
+
       </div>
-
-      <RatingModal
-        isOpen={ratingModal.isOpen}
-        onClose={() => setRatingModal({ isOpen: false, request: null })}
-        userId={currentUser._id}
-        targetUserId={ratingModal.request?.client?._id || ratingModal.request?.transporteur?._id}
-        requestId={ratingModal.request?._id}
-        targetUserName={ratingModal.request?.client?.name || ratingModal.request?.transporteur?.name}
-      />
-
     </>
   );
 }

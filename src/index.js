@@ -12,15 +12,18 @@ import Auth from "layouts/Auth.js";
 
 // views without layouts
 import MesRequests from "views/MesRequests.js";
+import Historique from "views/Historique.js";
 import AfficheRequest from "views/AfficheRequest.js";
 import Client from "views/client.js";
-import Landing from "views/Landing.js";
+import ClientRequests from "views/ClientRequests.js";
+
 import Profile from "views/Profile.js";
 import Index from "views/Index.js";
 import ColisTracking from "views/ColisTracking.js";
 import Chat from "views/Chat.js";
 import ClientDashboard from "views/ClientDashboard.js";
 import TransporteurDashboard from "views/TransporteurDashboard.js";
+import ResetPassword from "views/auth/ResetPassword.js";
 
 
 ReactDOM.render(
@@ -28,12 +31,15 @@ ReactDOM.render(
     <Switch>
       {/* add routes with layouts */}
       <Route path="/admin" component={Admin} />
+      <Route path="/auth/reset-password/:token" component={ResetPassword} />
       <Route path="/auth" component={Auth} />
       {/* add routes without layouts */}
       <Route path="/mes-requests" exact component={MesRequests} />
+      <Route path="/historique" exact component={Historique} />
+      <Route path="/client-requests" exact component={ClientRequests} />
       <Route path="/requests" exact component={AfficheRequest} />
       <Route path="/client" exact component={Client} />
-      <Route path="/landing" exact component={Landing} />
+
       <Route path="/profile" exact component={Profile} />
       <Route path="/profile/client" exact component={Profile} />
       <Route path="/profile/transporteur" exact component={Profile} />
@@ -46,7 +52,7 @@ ReactDOM.render(
       {/* add redirect for first page */}
       <Redirect from="*" to="/" />
     </Switch>
-    
+
   </BrowserRouter>,
   document.getElementById("root")
 );

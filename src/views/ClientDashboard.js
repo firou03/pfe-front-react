@@ -217,6 +217,7 @@ export default function ClientDashboard() {
           {[
             { label: "Dashboard",       to: "/dashboard/client",   icon: ICONS.package, active: true  },
             { label: "Nouvelle demande",to: "/client",             icon: ICONS.plus,    active: false },
+            { label: "Mes demandes",    to: "/client-requests",    icon: ICONS.check,   active: false },
             { label: "Tracking",        to: "/tracking",           icon: ICONS.map,     active: false },
             { label: "Messagerie",      to: "/chat",               icon: ICONS.chat,    active: false },
             { label: "Mon Profil",      to: "/profile/client",     icon: ICONS.user,    active: false },

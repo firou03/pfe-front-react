@@ -10,12 +10,12 @@ const Ic = ({ d, size = 16, color = "rgba(255,255,255,0.35)", sw = 1.8 }) => (
 );
 
 const D = {
-  dash:  "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
-  list:  "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
+  dash: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6",
+  list: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2",
   check: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
-  map:   "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7",
-  chat:  "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 12 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
-  user:  "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
+  map: "M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7",
+  chat: "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 12 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+  user: "M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z",
   truck: "M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11a2 2 0 012 2v3m0 0h3l3 3v4h-6m0 0a2 2 0 11-4 0 2 2 0 014 0zm-6 0a2 2 0 11-4 0 2 2 0 014 0z",
   trash: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16",
   clock: "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
@@ -30,12 +30,12 @@ const glass = {
 };
 
 const navItems = [
-  { label: "Dashboard",       to: "/dashboard/transporteur", icon: D.dash,  active: false },
-  { label: "Demandes dispo.", to: "/requests",               icon: D.list,  active: true  },
-  { label: "Mes demandes",    to: "/mes-requests",           icon: D.check, active: false },
-  { label: "Tracking",        to: "/tracking",               icon: D.map,   active: false },
-  { label: "Messagerie",      to: "/chat",                   icon: D.chat,  active: false },
-  { label: "Mon Profil",      to: "/profile/transporteur",   icon: D.user,  active: false },
+  { label: "Dashboard", to: "/dashboard/transporteur", icon: D.dash, active: false },
+  { label: "Demandes dispo.", to: "/requests", icon: D.list, active: true },
+  { label: "Mes demandes", to: "/mes-requests", icon: D.check, active: false },
+  { label: "Tracking", to: "/tracking", icon: D.map, active: false },
+  { label: "Messagerie", to: "/chat", icon: D.chat, active: false },
+  { label: "Mon Profil", to: "/profile/transporteur", icon: D.user, active: false },
 ];
 
 export default function AfficheRequest() {
@@ -61,13 +61,13 @@ export default function AfficheRequest() {
     setAccepting(id);
     try {
       await acceptTransportRequest(id);
-      
+
       // Automatiquement créer une conversation avec le client
       try {
         const convRes = await createConversation(clientId, id);
         const convId = convRes.data?._id;
         console.log("Conversation créée via API:", convId);
-        
+
         if (convId) {
           await sendMessage(convId, { content: "Bonjour, j'ai accepté votre demande de transport. Nous pouvons discuter des détails ici." });
           console.log("Message de bienvenue envoyé");
@@ -78,7 +78,7 @@ export default function AfficheRequest() {
 
       setRequests(prev => prev.filter(r => r._id !== id));
       alert("Demande acceptée ! Conversation démarrée. ✅");
-      
+
       // Optionnel: rediriger vers le chat
       // window.location.href = "/chat";
     } catch { alert("Erreur lors de l'acceptation ❌"); }
@@ -91,9 +91,9 @@ export default function AfficheRequest() {
   };
 
   const stats = [
-    { label: "En attente",  value: requests.length,                                         color: "#fbbf24", bg: "rgba(251,191,36,0.12)",  border: "rgba(251,191,36,0.25)"  },
-    { label: "Fragiles",    value: requests.filter(r => r.isSensitive === "oui").length,   color: "#f87171", bg: "rgba(239,68,68,0.12)",   border: "rgba(239,68,68,0.25)"   },
-    { label: "Standards",   value: requests.filter(r => r.isSensitive !== "oui").length,   color: "#4ade80", bg: "rgba(34,197,94,0.12)",   border: "rgba(34,197,94,0.25)"   },
+    { label: "En attente", value: requests.length, color: "#fbbf24", bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.25)" },
+    { label: "Fragiles", value: requests.filter(r => r.isSensitive === "oui").length, color: "#f87171", bg: "rgba(239,68,68,0.12)", border: "rgba(239,68,68,0.25)" },
+    { label: "Standards", value: requests.filter(r => r.isSensitive !== "oui").length, color: "#4ade80", bg: "rgba(34,197,94,0.12)", border: "rgba(34,197,94,0.25)" },
   ];
 
   return (
@@ -113,28 +113,28 @@ export default function AfficheRequest() {
         .del { transition: background 0.15s; }
       `}</style>
 
-      <div style={{ minHeight:"100vh", background:"linear-gradient(135deg,#0a0f1e 0%,#100b2e 50%,#0a0f1e 100%)", fontFamily:"'Inter',sans-serif", color:"#fff", display:"flex" }}>
+      <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0f1e 0%,#100b2e 50%,#0a0f1e 100%)", fontFamily: "'Inter',sans-serif", color: "#fff", display: "flex" }}>
 
         {/* ── Sidebar ── */}
         <aside style={{
-          position:"fixed", top:0, left:0, bottom:0, width:240,
-          background:"rgba(255,255,255,0.025)", borderRight:"1px solid rgba(255,255,255,0.07)",
-          padding:"28px 16px", display:"flex", flexDirection:"column", zIndex:100,
+          position: "fixed", top: 0, left: 0, bottom: 0, width: 240,
+          background: "rgba(255,255,255,0.025)", borderRight: "1px solid rgba(255,255,255,0.07)",
+          padding: "28px 16px", display: "flex", flexDirection: "column", zIndex: 100,
         }}>
-          <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:40, paddingLeft:8 }}>
-            <div style={{ width:36, height:36, borderRadius:10, background:"linear-gradient(135deg,#7c3aed,#6d28d9)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 4px 12px rgba(124,58,237,0.4)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 40, paddingLeft: 8 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "linear-gradient(135deg,#7c3aed,#6d28d9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(124,58,237,0.4)" }}>
               <Ic d={D.truck} size={18} color="#fff" />
             </div>
             <div>
-              <div style={{ fontSize:15, fontWeight:700 }}>TransportApp</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,0.35)", marginTop:1 }}>Transporteur Portal</div>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>TransportApp</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 1 }}>Transporteur Portal</div>
             </div>
           </div>
 
           {navItems.map(({ label, to, icon, active }) => (
             <Link key={to} to={to} className="nl" style={{
-              display:"flex", alignItems:"center", gap:12, padding:"11px 14px",
-              borderRadius:12, marginBottom:4, textDecoration:"none", fontSize:13,
+              display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
+              borderRadius: 12, marginBottom: 4, textDecoration: "none", fontSize: 13,
               fontWeight: active ? 600 : 400,
               color: active ? "#fff" : "rgba(255,255,255,0.45)",
               background: active ? "rgba(124,58,237,0.18)" : "transparent",
@@ -143,40 +143,40 @@ export default function AfficheRequest() {
               <Ic d={icon} size={16} color={active ? "#a78bfa" : "rgba(255,255,255,0.35)"} />
               {label}
               {active && requests.length > 0 && (
-                <span style={{ marginLeft:"auto", fontSize:10, fontWeight:700, background:"rgba(251,191,36,0.2)", color:"#fbbf24", border:"1px solid rgba(251,191,36,0.3)", borderRadius:20, padding:"1px 7px" }}>
+                <span style={{ marginLeft: "auto", fontSize: 10, fontWeight: 700, background: "rgba(251,191,36,0.2)", color: "#fbbf24", border: "1px solid rgba(251,191,36,0.3)", borderRadius: 20, padding: "1px 7px" }}>
                   {requests.length}
                 </span>
               )}
             </Link>
           ))}
 
-          <div style={{ flex:1 }} />
+          <div style={{ flex: 1 }} />
 
-          <div style={{ ...glass, padding:"14px 16px", display:"flex", alignItems:"center", gap:10 }}>
-            <div style={{ width:34, height:34, borderRadius:"50%", background:"linear-gradient(135deg,#7c3aed,#3b82f6)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:13, fontWeight:700, flexShrink:0 }}>
+          <div style={{ ...glass, padding: "14px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 34, height: 34, borderRadius: "50%", background: "linear-gradient(135deg,#7c3aed,#3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 700, flexShrink: 0 }}>
               {(currentUser?.name || currentUser?.email || "T").charAt(0).toUpperCase()}
             </div>
-            <div style={{ overflow:"hidden" }}>
-              <div style={{ fontSize:12, fontWeight:600, color:"#e2e8f0", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{currentUser?.name || "Transporteur"}</div>
-              <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{currentUser?.email || ""}</div>
+            <div style={{ overflow: "hidden" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentUser?.name || "Transporteur"}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{currentUser?.email || ""}</div>
             </div>
           </div>
         </aside>
 
         {/* ── Main ── */}
-        <main style={{ marginLeft:240, flex:1, padding:"36px 40px", minHeight:"100vh" }}>
+        <main style={{ marginLeft: 240, flex: 1, padding: "36px 40px", minHeight: "100vh" }}>
 
           {/* Header */}
-          <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:32 }} className="fu">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 32 }} className="fu">
             <div>
-              <div style={{ fontSize:11, color:"rgba(255,255,255,0.3)", letterSpacing:"0.1em", textTransform:"uppercase", marginBottom:6 }}>Transporteur</div>
-              <h1 style={{ fontSize:24, fontWeight:800, margin:0 }}>Demandes en attente</h1>
-              <p style={{ fontSize:13, color:"rgba(255,255,255,0.4)", marginTop:6 }}>Acceptez les demandes de transport disponibles</p>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Transporteur</div>
+              <h1 style={{ fontSize: 24, fontWeight: 800, margin: 0 }}>Demandes en attente</h1>
+              <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", marginTop: 6 }}>Acceptez les demandes de transport disponibles</p>
             </div>
             <button onClick={fetchRequests} style={{
-              display:"flex", alignItems:"center", gap:8, padding:"10px 20px", borderRadius:12,
-              fontSize:13, fontWeight:600, background:"rgba(255,255,255,0.06)",
-              border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.7)", cursor:"pointer",
+              display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 12,
+              fontSize: 13, fontWeight: 600, background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", cursor: "pointer",
             }}>
               <Ic d={D.clock} size={15} color="rgba(255,255,255,0.6)" />
               Actualiser
@@ -184,88 +184,88 @@ export default function AfficheRequest() {
           </div>
 
           {/* KPI strip */}
-          <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:16, marginBottom:28 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 16, marginBottom: 28 }}>
             {stats.map((s, i) => (
-              <div key={i} style={{ ...glass, padding:"20px 24px", animation:`fadeUp 0.4s ease ${i*0.07}s both`, display:"flex", alignItems:"center", gap:16 }}>
-                <div style={{ width:44, height:44, borderRadius:12, background:s.bg, border:`1px solid ${s.border}`, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0 }}>
-                  <span style={{ fontSize:18, fontWeight:800, color:s.color }}>{loading ? "—" : s.value}</span>
+              <div key={i} style={{ ...glass, padding: "20px 24px", animation: `fadeUp 0.4s ease ${i * 0.07}s both`, display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: s.bg, border: `1px solid ${s.border}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <span style={{ fontSize: 18, fontWeight: 800, color: s.color }}>{loading ? "—" : s.value}</span>
                 </div>
-                <div style={{ fontSize:12, color:"rgba(255,255,255,0.45)", fontWeight:500 }}>{s.label}</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", fontWeight: 500 }}>{s.label}</div>
               </div>
             ))}
           </div>
 
           {/* Table card */}
-          <div style={{ ...glass, padding:"24px 28px", animation:"fadeUp 0.4s ease 0.25s both" }}>
-            <div style={{ display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:20 }}>
-              <h2 style={{ fontSize:15, fontWeight:700, margin:0 }}>Liste des demandes disponibles</h2>
+          <div style={{ ...glass, padding: "24px 28px", animation: "fadeUp 0.4s ease 0.25s both" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <h2 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Liste des demandes disponibles</h2>
               {!loading && requests.length > 0 && (
-                <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{requests.length} demande(s)</span>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{requests.length} demande(s)</span>
               )}
             </div>
 
             {loading ? (
-              <div style={{ textAlign:"center", color:"rgba(255,255,255,0.25)", padding:"60px 0", fontSize:13 }}>Chargement...</div>
+              <div style={{ textAlign: "center", color: "rgba(255,255,255,0.25)", padding: "60px 0", fontSize: 13 }}>Chargement...</div>
             ) : requests.length === 0 ? (
-              <div style={{ textAlign:"center", padding:"60px 0" }}>
-                <div style={{ fontSize:40, marginBottom:12 }}>✅</div>
-                <div style={{ color:"rgba(255,255,255,0.3)", fontSize:13 }}>Aucune demande en attente pour le moment</div>
-                <button onClick={fetchRequests} style={{ marginTop:16, padding:"8px 22px", borderRadius:10, background:"rgba(124,58,237,0.2)", border:"1px solid rgba(124,58,237,0.3)", color:"#a78bfa", fontSize:12, fontWeight:600, cursor:"pointer" }}>
+              <div style={{ textAlign: "center", padding: "60px 0" }}>
+                <div style={{ fontSize: 40, marginBottom: 12 }}>✅</div>
+                <div style={{ color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Aucune demande en attente pour le moment</div>
+                <button onClick={fetchRequests} style={{ marginTop: 16, padding: "8px 22px", borderRadius: 10, background: "rgba(124,58,237,0.2)", border: "1px solid rgba(124,58,237,0.3)", color: "#a78bfa", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
                   Actualiser
                 </button>
               </div>
             ) : (
               <>
                 {/* Column headers */}
-                <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 90px 130px 130px", gap:8, padding:"0 12px 10px", borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
-                  {["Départ","Livraison","Date","Poids","Type","Client","Actions"].map(h => (
-                    <span key={h} style={{ fontSize:10, fontWeight:600, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{h}</span>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 90px 70px 90px 130px 130px", gap: 8, padding: "0 12px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                  {["Départ", "Livraison", "Date", "Poids", "Type", "Client", "Actions"].map(h => (
+                    <span key={h} style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{h}</span>
                   ))}
                 </div>
 
                 {/* Rows */}
                 {requests.map((r, i) => (
                   <div key={r._id || i} className="rh" style={{
-                    display:"grid", gridTemplateColumns:"1fr 1fr 90px 70px 90px 130px 130px",
-                    gap:8, padding:"13px 12px", borderRadius:10,
+                    display: "grid", gridTemplateColumns: "1fr 1fr 90px 70px 90px 130px 130px",
+                    gap: 8, padding: "13px 12px", borderRadius: 10,
                     borderBottom: i < requests.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                    alignItems:"center",
+                    alignItems: "center",
                   }}>
-                    <span style={{ fontSize:12, color:"#e2e8f0", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.pickupLocation || "—"}</span>
-                    <span style={{ fontSize:12, color:"rgba(255,255,255,0.55)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.deliveryLocation || "—"}</span>
-                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>{r.date ? new Date(r.date).toLocaleDateString("fr-FR") : "—"}</span>
-                    <span style={{ fontSize:11, color:"rgba(255,255,255,0.4)" }}>{r.weight ? `${r.weight} kg` : "—"}</span>
+                    <span style={{ fontSize: 12, color: "#e2e8f0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.pickupLocation || "—"}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.deliveryLocation || "—"}</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{r.date ? new Date(r.date).toLocaleDateString("fr-FR") : "—"}</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{r.weight ? `${r.weight} kg` : "—"}</span>
 
                     {/* Type badge */}
                     <span style={{
-                      display:"inline-flex", alignItems:"center", gap:4,
-                      fontSize:10, fontWeight:600, padding:"2px 10px", borderRadius:20, width:"fit-content",
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                      fontSize: 10, fontWeight: 600, padding: "2px 10px", borderRadius: 20, width: "fit-content",
                       background: r.isSensitive === "oui" ? "rgba(239,68,68,0.12)" : "rgba(34,197,94,0.12)",
                       color: r.isSensitive === "oui" ? "#f87171" : "#4ade80",
                       border: `1px solid ${r.isSensitive === "oui" ? "rgba(239,68,68,0.25)" : "rgba(34,197,94,0.25)"}`,
                     }}>
-                      <span style={{ width:5, height:5, borderRadius:"50%", background: r.isSensitive === "oui" ? "#f87171" : "#4ade80", display:"inline-block" }} />
+                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: r.isSensitive === "oui" ? "#f87171" : "#4ade80", display: "inline-block" }} />
                       {r.isSensitive === "oui" ? "Fragile" : "Normal"}
                     </span>
 
                     {/* Client */}
-                    <div style={{ overflow:"hidden" }}>
-                      <div style={{ fontSize:11, fontWeight:600, color:"rgba(255,255,255,0.6)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.client?.name || "—"}</div>
-                      <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>{r.client?.email || ""}</div>
+                    <div style={{ overflow: "hidden" }}>
+                      <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.client?.name || "—"}</div>
+                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{r.client?.email || ""}</div>
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display:"flex", gap:8 }}>
+                    <div style={{ display: "flex", gap: 8 }}>
                       <button className="acc" onClick={() => handleAccept(r._id, r.client?._id)} disabled={accepting === r._id} style={{
-                        padding:"5px 12px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
-                        background:"rgba(34,197,94,0.15)", border:"1px solid rgba(34,197,94,0.3)",
-                        color:"#4ade80", opacity: accepting === r._id ? 0.6 : 1,
+                        padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer",
+                        background: "rgba(34,197,94,0.15)", border: "1px solid rgba(34,197,94,0.3)",
+                        color: "#4ade80", opacity: accepting === r._id ? 0.6 : 1,
                       }}>
                         {accepting === r._id ? "..." : "✓ Accepter"}
                       </button>
                       <button className="del" onClick={() => handleDelete(r._id)} style={{
-                        padding:"5px 10px", borderRadius:8, fontSize:11, fontWeight:700, cursor:"pointer",
-                        background:"rgba(239,68,68,0.12)", border:"1px solid rgba(239,68,68,0.25)", color:"#f87171",
+                        padding: "5px 10px", borderRadius: 8, fontSize: 11, fontWeight: 700, cursor: "pointer",
+                        background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.25)", color: "#f87171",
                       }}>
                         <Ic d={D.trash} size={12} color="#f87171" sw={2} />
                       </button>

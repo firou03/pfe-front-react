@@ -69,6 +69,15 @@ export default function ConversationsList({ currentUser, onSelectConversation, s
     });
   };
 
+  const getAvatarUrl = (user) => {
+    if (!user) return null;
+    if (typeof user === 'string') return null;
+    if (user?.user_image) {
+      return `http://localhost:5000/images/${user.user_image}`;
+    }
+    return null;
+  };
+
   const filteredConversations = conversations.filter(conv => {
     const otherUser = getOtherUser(conv);
     if (!otherUser) return false;
@@ -149,7 +158,15 @@ export default function ConversationsList({ currentUser, onSelectConversation, s
                 }}
               >
                 <div style={avatarStyle}>
-                  {(typeof otherUser === 'string' ? "U" : (otherUser.name?.charAt(0) || "U")).toUpperCase()}
+                  {getAvatarUrl(otherUser) ? (
+                    <img 
+                      src={getAvatarUrl(otherUser)} 
+                      alt={typeof otherUser === 'string' ? "Utilisateur" : (otherUser.name || "Utilisateur")}
+                      style={{ width: "100%", height: "100%", borderRadius: "50%", objectFit: "cover" }} 
+                    />
+                  ) : (
+                    (typeof otherUser === 'string' ? "U" : (otherUser.name?.charAt(0) || "U")).toUpperCase()
+                  )}
                 </div>
                 
                 <div style={contentStyle}>
