@@ -46,3 +46,49 @@ export const updateRequestLocation = (id, data) => {
 export const deliverTransportRequest = (id) => {
   return axios.put(`${API_URL}/deliver/${id}`, {}, { headers: headers() });
 };
+
+// CONFIRM request (client confirms transporter)
+export const confirmRequest = (id) => {
+  return axios.patch(`${API_URL}/${id}/confirm`, {}, { headers: headers() });
+};
+
+// REFUSE request (client refuses transporter)
+export const refuseRequest = (id) => {
+  return axios.patch(`${API_URL}/${id}/refuse`, {}, { headers: headers() });
+};
+
+// GET client requests for dashboard
+export const getClientRequestsForDashboard = () => {
+  return axios.get(`${API_URL}/my-requests/client`, { headers: headers() });
+};
+
+// ────────────────────────────────────────
+// 📢 NOTIFICATION API FUNCTIONS
+// ────────────────────────────────────────
+
+const NOTIFICATIONS_URL = "http://localhost:5000/api/notifications";
+
+// GET all notifications
+export const getNotifications = () => {
+  return axios.get(`${NOTIFICATIONS_URL}`, { headers: headers() });
+};
+
+// GET unread count
+export const getUnreadCount = () => {
+  return axios.get(`${NOTIFICATIONS_URL}/unread-count`, { headers: headers() });
+};
+
+// PATCH mark notification as read
+export const markNotificationRead = (id) => {
+  return axios.patch(`${NOTIFICATIONS_URL}/${id}/read`, {}, { headers: headers() });
+};
+
+// PATCH mark all notifications as read
+export const markAllNotificationsRead = () => {
+  return axios.patch(`${NOTIFICATIONS_URL}/read-all`, {}, { headers: headers() });
+};
+
+// DELETE a notification
+export const deleteNotification = (id) => {
+  return axios.delete(`${NOTIFICATIONS_URL}/${id}`, { headers: headers() });
+};

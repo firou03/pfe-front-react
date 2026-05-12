@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { getClientRequests } from "service/restApiTransport";
+import { getClientRequestsForDashboard } from "service/restApiTransport";
 import RatingModal from "components/RatingModal";
 
 const Ic = ({ d, size = 16, color = "rgba(255,255,255,0.35)", sw = 1.8 }) => (
@@ -47,7 +47,7 @@ export default function ClientRequests() {
   }, []);
 
   const fetchRequests = () => {
-    getClientRequests()
+    getClientRequestsForDashboard()
       .then(res => setRequests(res.data || []))
       .catch(() => setRequests([]))
       .finally(() => setLoading(false));

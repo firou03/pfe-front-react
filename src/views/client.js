@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { createTransportRequest } from "service/restApiTransport";
+import PaymentModal from "components/PaymentModal";
 
 /* ── Leaflet Map ── */
 function LeafletMap({ onPick }) {
@@ -46,12 +47,14 @@ const D = {
   pin:   "M17.657 16.657L13.414 20.9a2 2 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0zM15 11a3 3 0 11-6 0 3 3 0 016 0z",
   box:   "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
   check: "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+  card:  "M3 10a1 1 0 011-1h16a1 1 0 011 1v10a1 1 0 01-1 1H4a1 1 0 01-1-1V10zm0 5h18",
 };
 
 const steps = [
   { label: "Étape 1", title: "Lieux",        icon: D.pin   },
   { label: "Étape 2", title: "Colis",         icon: D.box   },
   { label: "Étape 3", title: "Confirmation",  icon: D.check },
+  { label: "Étape 4", title: "Paiement",      icon: D.card },
 ];
 
 const glass = {
@@ -69,6 +72,8 @@ export default function CardClient() {
   const isMounted = useRef(true);
   const [step, setStep] = useState(0);
   const [activeMap, setActiveMap] = useState(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [createdRequestId, setCreatedRequestId] = useState(null);
   const [formData, setFormData] = useState({
     pickupLocation: "", deliveryLocation: "",
     pickupCoords: null, deliveryCoords: null,
@@ -77,8 +82,14 @@ export default function CardClient() {
 
   const minDateStr = React.useMemo(() => {
     const d = new Date();
-    d.setDate(d.getDate() + 2);
-    return d.toISOString().split("T")[0];
+    return d.toISOString().split("T")[0]; // Today
+  }, []);
+
+  const maxDateStr = React.useMemo(() => {
+    const d = new Date();
+    d.setMonth(11);
+    d.setDate(31);
+    return d.toISOString().split("T")[0]; // End of current year
   }, []);
 
   useEffect(() => () => { isMounted.current = false; }, []);
@@ -106,23 +117,40 @@ export default function CardClient() {
       const payload = {
         pickupLocation: formData.pickupLocation,
         deliveryLocation: formData.deliveryLocation,
-        date: formData.date, weight: formData.weight, isSensitive: formData.isSensitive,
+        date: formData.date, 
+        weight: parseInt(formData.weight) || 0, // Ensure weight is a number
+        isSensitive: formData.isSensitive,
       };
+
+      if (payload.weight <= 0) {
+        alert("Le poids doit être supérieur à 0 kg");
+        return;
+      }
+
       const res = await createTransportRequest(payload);
-      const createdRequest = res?.data?._id ? res.data : {
+      const createdRequest = res?.data?.request || {
         ...payload, _id: `local-${Date.now()}`, createdAt: new Date().toISOString(),
         client: { _id: currentUser?._id, email: currentUser?.email, name: currentUser?.name },
       };
+      
+      setCreatedRequestId(createdRequest._id);
+      setPaymentModalOpen(true);
+      
       const previous = JSON.parse(localStorage.getItem("clientRequests") || "[]");
       localStorage.setItem("clientRequests", JSON.stringify([createdRequest, ...previous]));
-      if (isMounted.current) {
-        alert("Demande envoyée avec succès ✅");
-        setFormData({ pickupLocation: "", deliveryLocation: "", pickupCoords: null, deliveryCoords: null, date: "", weight: "", isSensitive: "non" });
-        setStep(0);
-      }
     } catch (err) {
       console.error(err);
-      if (isMounted.current) alert("Erreur lors de l'envoi ❌");
+      if (isMounted.current) alert(err.response?.data?.message || "Erreur lors de l'envoi ❌");
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    if (isMounted.current) {
+      alert("Demande de transport et paiement confirmés ✅");
+      setFormData({ pickupLocation: "", deliveryLocation: "", pickupCoords: null, deliveryCoords: null, date: "", weight: "", isSensitive: "non" });
+      setStep(0);
+      setPaymentModalOpen(false);
+      setCreatedRequestId(null);
     }
   };
 
@@ -234,16 +262,16 @@ export default function CardClient() {
                   <div style={{
                     width:38, height:38, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center",
                     fontSize:13, fontWeight:700, flexShrink:0,
-                    background: i === step ? "linear-gradient(135deg,#3b82f6,#2563eb)" : i < step ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.07)",
-                    color: i === step ? "#fff" : i < step ? "#4ade80" : "rgba(255,255,255,0.3)",
+                    background: i === step ? (step === 3 ? "linear-gradient(135deg,#fbbf24,#f59e0b)" : "linear-gradient(135deg,#3b82f6,#2563eb)") : i < step ? "rgba(34,197,94,0.2)" : "rgba(255,255,255,0.07)",
+                    color: i === step ? (step === 3 ? "#000" : "#fff") : i < step ? "#4ade80" : "rgba(255,255,255,0.3)",
                     border: i < step ? "1px solid rgba(34,197,94,0.3)" : "1px solid transparent",
-                    boxShadow: i === step ? "0 4px 12px rgba(59,130,246,0.4)" : "none",
+                    boxShadow: i === step ? (step === 3 ? "0 4px 12px rgba(251,191,36,0.4)" : "0 4px 12px rgba(59,130,246,0.4)") : "none",
                   }}>
                     {i < step ? "✓" : i + 1}
                   </div>
                   <div>
                     <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.06em" }}>{s.label}</div>
-                    <div style={{ fontSize:13, fontWeight:600, color: i === step ? "#60a5fa" : i < step ? "#4ade80" : "rgba(255,255,255,0.35)" }}>{s.title}</div>
+                    <div style={{ fontSize:13, fontWeight:600, color: i === step ? (step === 3 ? "#fbbf24" : "#60a5fa") : i < step ? "#4ade80" : "rgba(255,255,255,0.35)" }}>{s.title}</div>
                   </div>
                 </div>
                 {i < steps.length - 1 && (
@@ -263,10 +291,10 @@ export default function CardClient() {
               </div>
               <div>
                 <div style={{ fontSize:16, fontWeight:700 }}>
-                  {["Choisissez les lieux de transport","Détails du colis","Récapitulatif de votre demande"][step]}
+                  {["Choisissez les lieux de transport","Détails du colis","Récapitulatif de votre demande","Paiement de votre demande"][step]}
                 </div>
                 <div style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginTop:3 }}>
-                  {["Saisissez les adresses ou cliquez sur la carte","Précisez la date, le poids et la nature du colis","Vérifiez les informations avant d'envoyer"][step]}
+                  {["Saisissez les adresses ou cliquez sur la carte","Précisez la date, le poids et la nature du colis","Vérifiez les informations avant d'envoyer","Choisissez votre méthode de paiement et complétez le paiement"][step]}
                 </div>
               </div>
             </div>
@@ -311,7 +339,7 @@ export default function CardClient() {
                 <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:20, marginBottom:24 }}>
                   <div>
                     <label style={lbl}>Date de livraison souhaitée</label>
-                    <input type="date" name="date" value={formData.date} onChange={handleChange} style={inp} min={minDateStr} />
+                    <input type="date" name="date" value={formData.date} onChange={handleChange} style={inp} min={minDateStr} max={maxDateStr} />
                   </div>
                   <div>
                     <label style={lbl}>Poids du colis (kg)</label>
@@ -368,13 +396,38 @@ export default function CardClient() {
               </div>
             )}
 
+            {/* ── STEP 3 - PAYMENT CONFIRMATION ── */}
+            {step === 3 && (
+              <div style={{ background:"linear-gradient(135deg, rgba(251,191,36,0.08) 0%, rgba(249,115,22,0.05) 100%)", border:"2px solid rgba(251,191,36,0.3)", borderRadius:16, padding:"32px", textAlign:"center", backdropFilter:"blur(10px)" }}>
+                <div style={{ fontSize:36, marginBottom:16 }}>🎉</div>
+                <div style={{ fontSize:14, color:"rgba(251,191,36,0.7)", marginBottom:8, fontWeight:600, textTransform:"uppercase", letterSpacing:"0.05em" }}>
+                  ✓ Demande créée avec succès
+                </div>
+                <div style={{ fontSize:20, fontWeight:800, marginBottom:16, background:"linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>
+                  Étape de paiement
+                </div>
+                <div style={{ fontSize:13, color:"rgba(255,255,255,0.6)", lineHeight:1.8, marginBottom:24 }}>
+                  Cliquez sur <strong>"Procéder au paiement"</strong> pour finaliser votre demande de transport.
+                </div>
+                <div style={{ background:"rgba(251,191,36,0.1)", border:"1px solid rgba(251,191,36,0.2)", borderRadius:12, padding:"16px", display:"flex", alignItems:"center", gap:12, justifyContent:"center" }}>
+                  <span style={{ fontSize:18 }}>💳</span>
+                  <div style={{ textAlign:"left" }}>
+                    <div style={{ fontSize:12, fontWeight:700, color:"#fbbf24" }}>Paiement Sécurisé</div>
+                    <div style={{ fontSize:11, color:"rgba(251,191,36,0.6)", marginTop:2 }}>Carte • Virement • Espèces</div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* ── Navigation ── */}
             <div style={{ display:"flex", gap:14, marginTop:32, paddingTop:24, borderTop:"1px solid rgba(255,255,255,0.07)" }}>
               {step > 0 && (
                 <button onClick={() => setStep(step - 1)} style={{
                   flex:1, padding:13, borderRadius:10, fontSize:13, cursor:"pointer",
                   background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", color:"rgba(255,255,255,0.6)",
-                }}>← Retour</button>
+                  transition:"all 0.2s",
+                }} onMouseEnter={(e) => e.target.style.background = "rgba(255,255,255,0.08)"} onMouseLeave={(e) => e.target.style.background = "rgba(255,255,255,0.05)"}
+                >← Retour</button>
               )}
               {step < steps.length - 1 ? (
                 <button onClick={() => setStep(step + 1)} disabled={!canNext()} style={{
@@ -387,14 +440,23 @@ export default function CardClient() {
                 }}>Suivant — {steps[step + 1]?.title} →</button>
               ) : (
                 <button onClick={handleSubmit} style={{
-                  flex:2, padding:13, borderRadius:10, fontSize:13, fontWeight:600, border:"none", cursor:"pointer",
-                  background:"linear-gradient(135deg,#22c55e,#15803d)",
-                  color:"#fff", boxShadow:"0 4px 14px rgba(34,197,94,0.4)",
-                }}>Envoyer la demande ✓</button>
+                  flex:2, padding:13, borderRadius:10, fontSize:13, fontWeight:700, border:"none", cursor:"pointer",
+                  background:"linear-gradient(135deg,#fbbf24,#f59e0b)",
+                  color:"#000", boxShadow:"0 8px 20px rgba(251,191,36,0.3)", transition:"all 0.3s",
+                }} onMouseEnter={(e) => e.target.style.boxShadow = "0 12px 30px rgba(251,191,36,0.4)"} onMouseLeave={(e) => e.target.style.boxShadow = "0 8px 20px rgba(251,191,36,0.3)"}
+                >Procéder au paiement 💳</button>
               )}
             </div>
           </div>
         </main>
+
+        {/* Payment Modal */}
+        <PaymentModal 
+          isOpen={paymentModalOpen}
+          onClose={() => setPaymentModalOpen(false)}
+          requestId={createdRequestId}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
       </div>
     </>
   );

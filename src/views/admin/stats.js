@@ -19,11 +19,9 @@ const ICONS = {
 };
 
 const glass = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 20,
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
+  background: "rgba(255,255,255,0.06)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  borderRadius: 16,
 };
 
 const API_BASE = "http://localhost:5000";
@@ -35,7 +33,7 @@ function BarChart({ data = [], color = "#e879f9" }) {
   const GAP = n > 1 ? (W - n * BAR_W) / (n + 1) : (W - BAR_W) / 2;
 
   return (
-    <svg viewBox={`0 0 ${W} ${H + 30}`} style={{ width: "100%", maxWidth: W }}>
+    <svg viewBox={`0 0 ${W} ${H + 30}`} preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "auto", display: "block" }}>
       <defs>
         <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor={color} />
@@ -48,7 +46,7 @@ function BarChart({ data = [], color = "#e879f9" }) {
         const y = H - barH;
         return (
           <g key={i}>
-            <rect x={x} y={H} width={BAR_W} height={2} rx={1} fill="rgba(255,255,255,0.05)" />
+            <rect x={x} y={H - 2} width={BAR_W} height={2} rx={1} fill="rgba(255,255,255,0.08)" />
             <rect x={x} y={y} width={BAR_W} height={barH} rx={6} fill={(d.v || 0) > 0 ? "url(#barGrad)" : "rgba(255,255,255,0.04)"} />
             <text x={x + BAR_W / 2} y={H + 20} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.4)">{d.l}</text>
             {(d.v || 0) > 0 && (
@@ -79,7 +77,7 @@ function DonutChart({ segments = [] }) {
   });
 
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap", justifyContent: "center" }}>
       <svg width={160} height={160}>
         <circle cx={CX} cy={CY} r={R} fill="rgba(255,255,255,0.03)" />
         {arcs.map((arc, i) => (
@@ -209,19 +207,92 @@ export default function Stats() {
     : "0";
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0f1e 0%,#0f172a 40%,#0d1b2e 100%)", fontFamily: "'Inter', sans-serif", color: "#fff", padding: "30px 40px" }}>
-      <header style={{ marginBottom: 30, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Statistiques</h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: "8px 0 0 0" }}>
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+      <style>{`
+        .stats-page {
+          font-family: 'Inter', sans-serif;
+          color: #fff;
+          width: 100%;
+          max-width: none;
+          box-sizing: border-box;
+          padding: 0 0 32px;
+        }
+        .stats-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 16px;
+          flex-wrap: wrap;
+          margin-bottom: 28px;
+        }
+        .stats-header h1 {
+          margin: 0;
+          font-size: clamp(22px, 4vw, 28px);
+          font-weight: 800;
+          line-height: 1.2;
+          word-break: break-word;
+        }
+        .stats-kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+          gap: 16px;
+          margin-bottom: 24px;
+        }
+        @media (min-width: 1400px) {
+          .stats-kpi-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+        .stats-charts-row {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 20px;
+          margin-bottom: 24px;
+        }
+        @media (min-width: 1024px) {
+          .stats-charts-row { grid-template-columns: 1fr 1fr; }
+        }
+        .stats-bottom-row {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        @media (min-width: 1024px) {
+          .stats-bottom-row { grid-template-columns: 1fr 1fr; }
+        }
+      `}</style>
+      <div
+        className="stats-page"
+        style={{
+          background: "linear-gradient(180deg, rgba(10,15,30,0.5) 0%, #0f172a 30%)",
+          minHeight: "auto",
+        }}
+      >
+      <header className="stats-header">
+        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
+          <h1>Statistiques</h1>
+          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: "8px 0 0 0", maxWidth: 560 }}>
             Analyses détaillées du système de transport
           </p>
         </div>
         <button
+          type="button"
           onClick={fetchAll}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", background: "rgba(139,92,246,0.15)", border: "1px solid rgba(139,92,246,0.3)", borderRadius: 10, color: "#a78bfa", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 18px",
+            flexShrink: 0,
+            background: "rgba(59,130,246,0.15)",
+            border: "1px solid rgba(59,130,246,0.35)",
+            borderRadius: 12,
+            color: "#93c5fd",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
         >
-          <Icon d={ICONS.refresh} size={14} color="#a78bfa" /> Actualiser
+          <Icon d={ICONS.refresh} size={14} color="#93c5fd" /> Actualiser
         </button>
       </header>
 
@@ -239,7 +310,7 @@ export default function Stats() {
       ) : (
         <>
           {/* KPI Grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 24 }}>
+          <div className="stats-kpi-grid">
             {kpiCards.map((k, i) => (
               <div key={i} style={{ ...glass, padding: 20 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: k.grad, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
@@ -252,7 +323,7 @@ export default function Stats() {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20, marginBottom: 24 }}>
+          <div className="stats-charts-row">
             {/* Weekly bar chart */}
             <div style={{ ...glass, padding: 24 }}>
               <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 700 }}>Activité (7 derniers jours)</h3>
@@ -278,7 +349,7 @@ export default function Stats() {
           </div>
 
           {/* Progress bars + Key Info */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+          <div className="stats-bottom-row">
             {/* Progress bars */}
             <div style={{ ...glass, padding: 24 }}>
               <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 700 }}>Répartition par statut</h3>
@@ -351,6 +422,7 @@ export default function Stats() {
           </div>
         </>
       )}
-    </div>
+      </div>
+    </>
   );
 }

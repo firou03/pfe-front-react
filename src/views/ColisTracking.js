@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getMesRequests, getClientRequests, updateRequestLocation } from "service/restApiTransport";
+import { getMesRequests, getClientRequestsForDashboard, updateRequestLocation } from "service/restApiTransport";
 
 const TRACKING_KEY = "colisTrackingByRequest";
 const getStoredTracking = () => { try { return JSON.parse(localStorage.getItem(TRACKING_KEY) || "{}"); } catch { return {}; } };
@@ -58,12 +58,12 @@ export default function ColisTracking() {
           setRequests(filterRequests(res.data || [], { trustServerScope: true }));
         } else {
           try {
-            const res = await getClientRequests();
+            const res = await getClientRequestsForDashboard();
             const scoped = filterRequests(res.data || [], { trustServerScope: true });
-            setRequests(scoped.filter(r => String(r?.status || "").toLowerCase().includes("accept")));
+            setRequests(scoped.filter(r => ["accepted_by_transporter", "confirmed", "delivered"].includes(String(r?.status || "").toLowerCase())));
           } catch {
             const local = filterRequests(getStoredClientRequests());
-            setRequests(local.filter(r => String(r?.status || "").toLowerCase().includes("accept")));
+            setRequests(local.filter(r => ["accepted_by_transporter", "confirmed", "delivered"].includes(String(r?.status || "").toLowerCase())));
           }
         }
       } catch { setRequests([]); }

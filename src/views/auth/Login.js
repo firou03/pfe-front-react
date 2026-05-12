@@ -1,9 +1,17 @@
-import React, { useState } from "react";
-import { Link, useHistory } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import { loginUser } from "../../service/restApiUser";
+
+function redirectPathForRole(role) {
+  const r = String(role || "").toLowerCase();
+  if (r === "admin") return "/admin/dashboard";
+  if (r === "transporteur") return "/dashboard/transporteur";
+  return "/dashboard/client";
+}
 
 export default function Login() {
   const history = useHistory();
+  const location = useLocation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
@@ -15,46 +23,57 @@ export default function Login() {
     setFormData({ ...formData, [name]: value });
   };
 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("user");
+      const token = localStorage.getItem("token");
+      if (!token || !raw) return;
+      const u = JSON.parse(raw);
+      history.replace(redirectPathForRole(u?.role));
+    } catch {
+      /* ignore */
+    }
+  }, [history]);
+
   const handleSubmit = async (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  if (!formData.email || !formData.password) {
-    alert("Please enter email and password");
-    return;
-  }
-
-  setIsSubmitting(true);
-
-  try {
-    const response = await loginUser(formData);
-    const { token, user } = response.data;
-
-    if (token) {
-      localStorage.setItem("token", token);
-    }
-    if (user) {
-      localStorage.setItem("user", JSON.stringify(user));
+    if (!formData.email || !formData.password) {
+      alert("Please enter email and password");
+      return;
     }
 
-    alert("Connexion réussie ✅");
+    setIsSubmitting(true);
 
-    // ✅ Redirige selon le rôle vers le dashboard
-    if (user.role === "admin") {
-      history.push("/admin/dashboard");
-    } else if (user.role === "transporteur") {
-      history.push("/dashboard/transporteur");
-    } else {
-      history.push("/dashboard/client");
+    try {
+      const response = await loginUser(formData);
+      const { token, user } = response.data;
+
+      if (token) {
+        localStorage.setItem("token", token);
+      }
+      if (user) {
+        localStorage.setItem("user", JSON.stringify(user));
+      }
+
+      alert("Connexion réussie ✅");
+
+      const role = String(user?.role || "").toLowerCase();
+      let next = redirectPathForRole(user?.role);
+      const intended = location.state?.from;
+      if (role === "admin" && intended?.pathname?.startsWith("/admin")) {
+        next = `${intended.pathname}${intended.search || ""}${intended.hash || ""}`;
+      }
+
+      history.push(next);
+    } catch (error) {
+      console.error(error);
+      const message = error?.response?.data?.message || "Erreur connexion ❌";
+      alert(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-  } catch (error) {
-    console.error(error);
-    const message = error?.response?.data?.message || "Erreur connexion ❌";
-    alert(message);
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+  };
 
   return (
     <>

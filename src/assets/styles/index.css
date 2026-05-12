@@ -3,3 +3,9 @@
 @tailwind components;
 
 @tailwind utilities;
+
+/* Pleine largeur du shell React (évite bandes blanches latérales) */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

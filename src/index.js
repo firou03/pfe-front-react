@@ -15,7 +15,7 @@ import MesRequests from "views/MesRequests.js";
 import Historique from "views/Historique.js";
 import AfficheRequest from "views/AfficheRequest.js";
 import Client from "views/client.js";
-import ClientRequests from "views/ClientRequests.js";
+import MesDemandesClient from "views/client/MesDemandesClient.js";
 
 import Profile from "views/Profile.js";
 import Index from "views/Index.js";
@@ -24,9 +24,10 @@ import Chat from "views/Chat.js";
 import ClientDashboard from "views/ClientDashboard.js";
 import TransporteurDashboard from "views/TransporteurDashboard.js";
 import ResetPassword from "views/auth/ResetPassword.js";
-
+import { ThemeProvider } from "context/ThemeContext";
 
 ReactDOM.render(
+  <ThemeProvider>
   <BrowserRouter>
     <Switch>
       {/* add routes with layouts */}
@@ -36,7 +37,7 @@ ReactDOM.render(
       {/* add routes without layouts */}
       <Route path="/mes-requests" exact component={MesRequests} />
       <Route path="/historique" exact component={Historique} />
-      <Route path="/client-requests" exact component={ClientRequests} />
+      <Route path="/client-requests" exact component={MesDemandesClient} />
       <Route path="/requests" exact component={AfficheRequest} />
       <Route path="/client" exact component={Client} />
 
@@ -53,6 +54,7 @@ ReactDOM.render(
       <Redirect from="*" to="/" />
     </Switch>
 
-  </BrowserRouter>,
+  </BrowserRouter>
+  </ThemeProvider>,
   document.getElementById("root")
 );

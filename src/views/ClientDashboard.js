@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { getClientRequests } from "service/restApiTransport";
+import { getClientRequestsForDashboard } from "service/restApiTransport";
+import NotificationBell from "components/NotificationBell";
 
 /* ─────────────────────────────────────────────
    Tiny SVG icons
@@ -116,7 +117,7 @@ export default function ClientDashboard() {
     isMounted.current = true;
     const load = async () => {
       try {
-        const res = await getClientRequests();
+        const res = await getClientRequestsForDashboard();
         if (isMounted.current) setRequests(res.data || []);
       } catch {
         const local = JSON.parse(localStorage.getItem("clientRequests") || "[]");
@@ -264,11 +265,12 @@ export default function ClientDashboard() {
         </aside>
 
         {/* ── Main content ── */}
-        <main style={{ marginLeft: 240, padding: "32px 36px", minHeight: "100vh" }}>
+        <main style={{ marginLeft: 240, padding: "32px 36px", minHeight: "100vh", overflow: "visible" }}>
 
           {/* Top bar */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 36,
+            position: "relative", zIndex: 100,
           }} className="dash-fadeup">
             <div>
               <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>
@@ -279,7 +281,7 @@ export default function ClientDashboard() {
               </h1>
             </div>
             
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 100 }}>
               <Link to="/client" style={{
                 display: "flex", alignItems: "center", gap: 8,
                 padding: "10px 20px", borderRadius: 12, fontSize: 13, fontWeight: 600,
@@ -290,6 +292,10 @@ export default function ClientDashboard() {
                 <Icon d={ICONS.plus} size={15} color="#fff" />
                 Nouvelle demande
               </Link>
+
+              <div style={{ position: "relative", display: "flex", alignItems: "center", zIndex: 9999 }}>
+                <NotificationBell />
+              </div>
 
               <button 
                 onClick={handleLogout}
@@ -311,6 +317,7 @@ export default function ClientDashboard() {
           {/* ── KPI Cards ── */}
           <div style={{
             display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 24, marginBottom: 40,
+            position: "relative", zIndex: 1,
           }}>
             {kpis.map((k, i) => (
               <div key={i} className="kpi-card" style={{

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { getPendingRequests, getMesRequests, acceptTransportRequest, deliverTransportRequest } from "service/restApiTransport";
 import { createConversation, sendMessage } from "service/restApiChat";
+import NotificationBell from "components/NotificationBell";
 
 const Icon = ({ d, size = 16, color = "#fff", sw = 1.8 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round">
@@ -197,16 +198,22 @@ export default function TransporteurDashboard() {
       </aside>
 
       <main style={{ flex:1, marginLeft:240, padding:"30px 40px" }}>
-        <header style={{ marginBottom:30, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+        <header style={{ marginBottom:30, display:"flex", justifyContent:"space-between", alignItems:"center", position: "relative", zIndex: 100 }}>
           <div>
             <div style={{ fontSize:10, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", marginBottom:2, letterSpacing:1 }}>Dashboard</div>
             <h1 style={{ fontSize:22, fontWeight:800, margin:0 }}>Bonjour, {user?.name?.split(" ")[0] || "T"}</h1>
           </div>
           
-          <button onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", padding:"8px 16px", borderRadius:10, cursor:"pointer", color:"#f87171", fontSize:13, fontWeight:600, transition:"all 0.2s" }}>
-            <Icon d={D.logout} size={14} color="#f87171" />
-            Déconnexion
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, position: "relative", zIndex: 100 }}>
+            <div style={{ position: "relative", display: "flex", alignItems: "center", zIndex: 9999 }}>
+              <NotificationBell />
+            </div>
+            
+            <button onClick={handleLogout} style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(248,113,113,0.1)", border:"1px solid rgba(248,113,113,0.2)", padding:"8px 16px", borderRadius:10, cursor:"pointer", color:"#f87171", fontSize:13, fontWeight:600, transition:"all 0.2s" }}>
+              <Icon d={D.logout} size={14} color="#f87171" />
+              Déconnexion
+            </button>
+          </div>
         </header>
 
         {/* KPIs */}
