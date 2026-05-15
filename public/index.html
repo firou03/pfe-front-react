@@ -19,6 +19,13 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
    
     <title> Plateforme de Transport</title>
+    <script>
+      (function () {
+        var t = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", t);
+        if (t === "dark") document.documentElement.classList.add("dark");
+      })();
+    </script>
     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_KEY_HERE"></script>
   </head>
   <body class="text-blueGray-700 antialiased">

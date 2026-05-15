@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import PageHeader from "components/dashboard/PageHeader";
 
 const Icon = ({ d, size = 16, color = "#fff" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -11,14 +12,6 @@ const ICONS = {
   package: "M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4",
   eye: "M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z",
   refresh: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
-};
-
-const glass = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 20,
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
 };
 
 const API_BASE = "http://localhost:5000";
@@ -99,50 +92,40 @@ export default function Requests() {
   const STATUS_LABELS = { all: "Tous", pending: "En attente", accepted: "Acceptées", delivered: "Livrées", cancelled: "Annulées" };
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0f1e 0%,#0f172a 40%,#0d1b2e 100%)", fontFamily: "'Inter', sans-serif", color: "#fff", padding: "30px 40px" }}>
-      <header style={{ marginBottom: 30, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Gestion des Demandes</h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: "8px 0 0 0" }}>
-            {loading ? "Chargement..." : `${filteredRequests.length} demande${filteredRequests.length !== 1 ? "s" : ""}`}
-          </p>
-        </div>
-        <button
-          onClick={fetchRequests}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", borderRadius: 10, color: "#60a5fa", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-        >
-          <Icon d={ICONS.refresh} size={14} color="#60a5fa" /> Actualiser
-        </button>
-      </header>
+    <>
+      <PageHeader
+        sectionLabel="Administration"
+        title="Gestion des demandes"
+        subtitle={
+          loading
+            ? "Chargement..."
+            : `${filteredRequests.length} demande${filteredRequests.length !== 1 ? "s" : ""}`
+        }
+        actions={
+          <button type="button" className="dash-btn-primary" onClick={fetchRequests}>
+            <Icon d={ICONS.refresh} size={14} /> Actualiser
+          </button>
+        }
+      />
 
       {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", padding: 16, borderRadius: 12, marginBottom: 20, color: "#fca5a5" }}>
-          ⚠️ {error}
-        </div>
+        <div className="dash-alert-error">⚠️ {error}</div>
       )}
 
       {/* Filters */}
-      <div style={{ ...glass, padding: 20, marginBottom: 20 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <div className="dash-panel" style={{ marginBottom: 20 }}>
+        <div className="dash-filters">
           {STATUSES.map((s) => (
             <button
               key={s}
+              type="button"
+              className={`dash-filter-pill${statusFilter === s ? " active" : ""}`}
               onClick={() => setStatusFilter(s)}
-              style={{
-                padding: "8px 16px",
-                background: statusFilter === s ? "rgba(232,121,249,0.2)" : "rgba(255,255,255,0.05)",
-                border: "1px solid " + (statusFilter === s ? "rgba(232,121,249,0.3)" : "rgba(255,255,255,0.1)"),
-                borderRadius: 8,
-                color: statusFilter === s ? "#e879f9" : "rgba(255,255,255,0.5)",
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
             >
               {STATUS_LABELS[s]}
               {s !== "all" && (
-                <span style={{ marginLeft: 6, background: "rgba(255,255,255,0.1)", borderRadius: 10, padding: "1px 7px", fontSize: 10 }}>
-                  {requests.filter(r => r.status === s).length}
+                <span className="dash-filter-count">
+                  {requests.filter((r) => r.status === s).length}
                 </span>
               )}
             </button>
@@ -151,7 +134,7 @@ export default function Requests() {
       </div>
 
       {/* Table */}
-      <div style={{ ...glass, padding: 24 }}>
+      <div className="dash-panel">
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -216,6 +199,6 @@ export default function Requests() {
           </div>
         )}
       </div>
-    </div>
+    </>
   );
 }

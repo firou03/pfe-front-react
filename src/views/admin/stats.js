@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import PageHeader from "components/dashboard/PageHeader";
 
 const Icon = ({ d, size = 20, color = "#fff" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -16,12 +17,6 @@ const ICONS = {
   dollar: "M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8v.01M12 4c-4.418 0-8 1.79-8 4v8c0 2.21 3.582 4 8 4s8-1.79 8-4V8c0-2.21-3.582-4-8-4z",
   refresh: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
   star: "M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z",
-};
-
-const glass = {
-  background: "rgba(255,255,255,0.06)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  borderRadius: 16,
 };
 
 const API_BASE = "http://localhost:5000";
@@ -48,9 +43,9 @@ function BarChart({ data = [], color = "#e879f9" }) {
           <g key={i}>
             <rect x={x} y={H - 2} width={BAR_W} height={2} rx={1} fill="rgba(255,255,255,0.08)" />
             <rect x={x} y={y} width={BAR_W} height={barH} rx={6} fill={(d.v || 0) > 0 ? "url(#barGrad)" : "rgba(255,255,255,0.04)"} />
-            <text x={x + BAR_W / 2} y={H + 20} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.4)">{d.l}</text>
+            <text x={x + BAR_W / 2} y={H + 20} textAnchor="middle" className="dash-chart-label">{d.l}</text>
             {(d.v || 0) > 0 && (
-              <text x={x + BAR_W / 2} y={y - 6} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.75)" fontWeight="700">{d.v}</text>
+              <text x={x + BAR_W / 2} y={y - 6} textAnchor="middle" fontSize={10} fill="var(--dash-text-secondary)" fontWeight="700">{d.v}</text>
             )}
           </g>
         );
@@ -83,14 +78,14 @@ function DonutChart({ segments = [] }) {
         {arcs.map((arc, i) => (
           <path key={i} d={arc.d} fill={arc.color} opacity={0.85} />
         ))}
-        <circle cx={CX} cy={CY} r={R * 0.55} fill="#0f172a" />
-        <text x={CX} y={CY + 5} textAnchor="middle" fontSize={14} fill="#fff" fontWeight="700">{total}</text>
+        <circle cx={CX} cy={CY} r={R * 0.55} fill="var(--dash-bg)" />
+        <text x={CX} y={CY + 5} textAnchor="middle" fontSize={14} fill="var(--dash-text)" fontWeight="700">{total}</text>
       </svg>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {segments.map((seg, i) => (
           <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: seg.color, flexShrink: 0 }} />
-            <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{seg.label}</span>
+            <span className="dash-date" style={{ fontSize: 12 }}>{seg.label}</span>
             <span style={{ fontSize: 12, fontWeight: 700, color: seg.color, marginLeft: "auto" }}>{seg.value}</span>
           </div>
         ))}
@@ -212,7 +207,7 @@ export default function Stats() {
       <style>{`
         .stats-page {
           font-family: 'Inter', sans-serif;
-          color: #fff;
+          color: var(--dash-text);
           width: 100%;
           max-width: none;
           box-sizing: border-box;
@@ -260,50 +255,24 @@ export default function Stats() {
           .stats-bottom-row { grid-template-columns: 1fr 1fr; }
         }
       `}</style>
-      <div
-        className="stats-page"
-        style={{
-          background: "linear-gradient(180deg, rgba(10,15,30,0.5) 0%, #0f172a 30%)",
-          minHeight: "auto",
-        }}
-      >
-      <header className="stats-header">
-        <div style={{ flex: "1 1 240px", minWidth: 0 }}>
-          <h1>Statistiques</h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: "8px 0 0 0", maxWidth: 560 }}>
-            Analyses détaillées du système de transport
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={fetchAll}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "10px 18px",
-            flexShrink: 0,
-            background: "rgba(59,130,246,0.15)",
-            border: "1px solid rgba(59,130,246,0.35)",
-            borderRadius: 12,
-            color: "#93c5fd",
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-          }}
-        >
-          <Icon d={ICONS.refresh} size={14} color="#93c5fd" /> Actualiser
-        </button>
-      </header>
+      <PageHeader
+        sectionLabel="Administration"
+        title="Statistiques"
+        subtitle="Analyses détaillées du système de transport"
+        actions={
+          <button type="button" className="dash-btn-primary" onClick={fetchAll}>
+            <Icon d={ICONS.refresh} size={14} /> Actualiser
+          </button>
+        }
+      />
+      <div className="stats-page">
 
       {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", padding: 16, borderRadius: 12, marginBottom: 20, color: "#fca5a5" }}>
-          ⚠️ {error}
-        </div>
+        <div className="dash-alert-error">⚠️ {error}</div>
       )}
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "60px 20px", color: "rgba(255,255,255,0.4)" }}>
+        <div className="dash-empty" style={{ padding: "60px 20px" }}>
           <div style={{ fontSize: 40 }}>📊</div>
           <div style={{ marginTop: 12, fontSize: 14 }}>Chargement des statistiques...</div>
         </div>
@@ -312,12 +281,12 @@ export default function Stats() {
           {/* KPI Grid */}
           <div className="stats-kpi-grid">
             {kpiCards.map((k, i) => (
-              <div key={i} style={{ ...glass, padding: 20 }}>
+              <div key={i} className="dash-panel" style={{ marginBottom: 20 }}>
                 <div style={{ width: 40, height: 40, borderRadius: 10, background: k.grad, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }}>
                   <Icon d={k.icon} size={18} color="#fff" />
                 </div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: "#fff", marginBottom: 4 }}>{k.value}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>{k.label}</div>
+                <div className="dash-stat-value" style={{ marginBottom: 4 }}>{k.value}</div>
+                <div className="dash-mini-stat-label">{k.label}</div>
               </div>
             ))}
           </div>
@@ -325,23 +294,23 @@ export default function Stats() {
           {/* Charts Row */}
           <div className="stats-charts-row">
             {/* Weekly bar chart */}
-            <div style={{ ...glass, padding: 24 }}>
-              <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 700 }}>Activité (7 derniers jours)</h3>
+            <div className="dash-panel">
+              <h3 className="dash-panel-heading">Activité (7 derniers jours)</h3>
               <BarChart data={weeklyData} color="#e879f9" />
               {weeklyData.every(d => d.v === 0) && (
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", textAlign: "center", marginTop: 8 }}>
+                <p className="dash-date" style={{ textAlign: "center", marginTop: 8 }}>
                   Données hebdomadaires non disponibles via le backend.
                 </p>
               )}
             </div>
 
             {/* Donut chart */}
-            <div style={{ ...glass, padding: 24 }}>
-              <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 700 }}>Répartition des demandes</h3>
+            <div className="dash-panel">
+              <h3 className="dash-panel-heading">Répartition des demandes</h3>
               {stats && stats.total > 0 ? (
                 <DonutChart segments={donutSegments.filter(s => s.value > 0)} />
               ) : (
-                <div style={{ textAlign: "center", padding: "30px 0", color: "rgba(255,255,255,0.3)" }}>
+                <div className="dash-empty" style={{ padding: "30px 0" }}>
                   Aucune donnée disponible
                 </div>
               )}
@@ -351,18 +320,18 @@ export default function Stats() {
           {/* Progress bars + Key Info */}
           <div className="stats-bottom-row">
             {/* Progress bars */}
-            <div style={{ ...glass, padding: 24 }}>
-              <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 700 }}>Répartition par statut</h3>
+            <div className="dash-panel">
+              <h3 className="dash-panel-heading">Répartition par statut</h3>
               {stats && stats.total > 0 ? (
                 donutSegments.map((s, i) => (
                   <div key={i} style={{ marginBottom: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{s.label}</span>
+                      <span className="dash-date" style={{ fontSize: 12 }}>{s.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: s.color }}>
                         {s.value} ({stats.total > 0 ? ((s.value / stats.total) * 100).toFixed(0) : 0}%)
                       </span>
                     </div>
-                    <div style={{ height: 8, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: 8, background: "var(--dash-chart-bar-empty)", borderRadius: 4, overflow: "hidden" }}>
                       <div style={{
                         height: "100%",
                         width: `${stats.total > 0 ? (s.value / stats.total) * 100 : 0}%`,
@@ -374,24 +343,24 @@ export default function Stats() {
                   </div>
                 ))
               ) : (
-                <p style={{ color: "rgba(255,255,255,0.3)", fontSize: 13 }}>Aucune demande enregistrée.</p>
+                <p className="dash-empty" style={{ fontSize: 13, padding: 0 }}>Aucune demande enregistrée.</p>
               )}
 
               {/* Users breakdown */}
-              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)", marginBottom: 12, textTransform: "uppercase", fontWeight: 600 }}>Utilisateurs</div>
+              <div style={{ marginTop: 20, paddingTop: 20, borderTop: "1px solid var(--dash-border-subtle)" }}>
+                <p className="dash-panel-title" style={{ marginBottom: 12 }}>Utilisateurs</p>
                 {[
                   { label: "Clients", value: users.clients, color: "#3b82f6" },
                   { label: "Transporteurs", value: users.transporteurs, color: "#a855f7" },
                 ].map((u, i) => (
                   <div key={i} style={{ marginBottom: 12 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>{u.label}</span>
+                      <span className="dash-date" style={{ fontSize: 12 }}>{u.label}</span>
                       <span style={{ fontSize: 12, fontWeight: 700, color: u.color }}>
                         {u.value} ({users.total > 0 ? ((u.value / users.total) * 100).toFixed(0) : 0}%)
                       </span>
                     </div>
-                    <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ height: 6, background: "var(--dash-chart-bar-empty)", borderRadius: 4, overflow: "hidden" }}>
                       <div style={{ height: "100%", width: `${users.total > 0 ? (u.value / users.total) * 100 : 0}%`, background: u.color, borderRadius: 4 }} />
                     </div>
                   </div>
@@ -400,8 +369,8 @@ export default function Stats() {
             </div>
 
             {/* Key metrics */}
-            <div style={{ ...glass, padding: 24 }}>
-              <h3 style={{ margin: "0 0 20px 0", fontSize: 16, fontWeight: 700 }}>Indicateurs clés</h3>
+            <div className="dash-panel">
+              <h3 className="dash-panel-heading">Indicateurs clés</h3>
               {[
                 { label: "Taux de complétion", value: `${completionRate}%`, color: "#22c55e", desc: "Demandes livrées / total" },
                 { label: "Demandes actives", value: stats ? stats.pending + stats.accepted : 0, color: "#3b82f6", desc: "En attente + acceptées" },
@@ -410,10 +379,10 @@ export default function Stats() {
                 { label: "Transporteurs actifs", value: users.transporteurs, color: "#a855f7", desc: "Rôle = transporteur" },
                 { label: "Note moyenne avis", value: `${reviews.avgRating} / 5`, color: "#fbbf24", desc: `Sur ${reviews.total} avis` },
               ].map((item, i) => (
-                <div key={i} style={{ padding: "14px 0", borderBottom: i < 5 ? "1px solid rgba(255,255,255,0.06)" : "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div key={i} style={{ padding: "14px 0", borderBottom: i < 5 ? "1px solid var(--dash-border-subtle)" : "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <div style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{item.label}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{item.desc}</div>
+                    <div className="dash-route" style={{ fontSize: 13, fontWeight: 500 }}>{item.label}</div>
+                    <div className="dash-date" style={{ marginTop: 2 }}>{item.desc}</div>
                   </div>
                   <div style={{ fontSize: 18, fontWeight: 800, color: item.color }}>{item.value}</div>
                 </div>

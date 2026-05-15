@@ -1,6 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+﻿import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import PageHeader from "components/dashboard/PageHeader";
+import StatCard from "components/dashboard/StatCard";
+import StatusBadge from "components/dashboard/StatusBadge";
+import QuickActionsPanel from "components/dashboard/QuickActionsPanel";
 
 const API_BASE = "http://localhost:5000";
 
@@ -21,36 +25,6 @@ const Icon = ({ d, size = 20, color = "#fff", strokeWidth = 1.8 }) => (
   </svg>
 );
 
-function StatusBadge({ status }) {
-  const map = {
-    pending: { label: "En attente", bg: "rgba(251,191,36,0.15)", color: "#fbbf24", border: "rgba(251,191,36,0.3)" },
-    accepted: { label: "Acceptée", bg: "rgba(34,197,94,0.15)", color: "#4ade80", border: "rgba(34,197,94,0.3)" },
-    delivered: { label: "Livrée", bg: "rgba(99,102,241,0.15)", color: "#818cf8", border: "rgba(99,102,241,0.3)" },
-    cancelled: { label: "Annulée", bg: "rgba(239,68,68,0.15)", color: "#f87171", border: "rgba(239,68,68,0.3)" },
-  };
-  const s = map[status] || map.pending;
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 5,
-        padding: "3px 10px",
-        borderRadius: 20,
-        fontSize: 11,
-        fontWeight: 600,
-        background: s.bg,
-        color: s.color,
-        border: `1px solid ${s.border}`,
-      }}
-    >
-      <span style={{ width: 5, height: 5, borderRadius: "50%", background: s.color, display: "inline-block" }} />
-      {s.label}
-    </span>
-  );
-}
-
-/** Même idée que ActivityChart du ClientDashboard, données issues de l’API admin. */
 function WeeklyActivityChart({ weekly = [] }) {
   const data =
     weekly.length > 0
@@ -74,12 +48,12 @@ function WeeklyActivityChart({ weekly = [] }) {
         const y = H - barH;
         return (
           <g key={i}>
-            <rect x={x} y={y} width={BAR_W} height={barH} rx={6} fill={row.v > 0 ? "url(#adminGrad)" : "rgba(255,255,255,0.06)"} />
-            <text x={x + BAR_W / 2} y={H + 18} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.4)">
+            <rect x={x} y={y} width={BAR_W} height={barH} rx={6} fill={row.v > 0 ? "url(#adminGrad)" : "var(--dash-chart-bar-empty)"} />
+            <text x={x + BAR_W / 2} y={H + 18} textAnchor="middle" fontSize={10} className="dash-chart-label">
               {row.l}
             </text>
             {row.v > 0 && (
-              <text x={x + BAR_W / 2} y={y - 6} textAnchor="middle" fontSize={10} fill="rgba(255,255,255,0.7)" fontWeight="600">
+              <text x={x + BAR_W / 2} y={y - 6} textAnchor="middle" fontSize={10} fill="var(--dash-text-secondary)" fontWeight="600">
                 {row.v}
               </text>
             )}
@@ -96,19 +70,18 @@ function WeeklyActivityChart({ weekly = [] }) {
   );
 }
 
-const glass = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 20,
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
+const SEM = {
+  request: { color: "var(--semantic-request)", bg: "var(--semantic-request-bg)" },
+  delivery: { color: "var(--semantic-delivery)", bg: "var(--semantic-delivery-bg)" },
+  tracking: { color: "var(--semantic-tracking)", bg: "var(--semantic-tracking-bg)" },
+  warning: { color: "var(--semantic-warning)", bg: "var(--semantic-warning-bg)" },
 };
 
 const QUICK_ACTIONS = [
-  { label: "Utilisateurs", to: "/admin/users", icon: ICONS.users, grad: "linear-gradient(135deg,#e879f9,#c084fc)" },
-  { label: "Expéditions", to: "/admin/requests", icon: ICONS.inbox, grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
-  { label: "Avis", to: "/admin/reviews", icon: ICONS.star, grad: "linear-gradient(135deg,#fbbf24,#d97706)" },
-  { label: "Statistiques", to: "/admin/stats", icon: ICONS.chart, grad: "linear-gradient(135deg,#34d399,#059669)" },
+  { title: "Utilisateurs", subtitle: "Gerer les comptes", to: "/admin/users", icon: ICONS.users, iconColor: SEM.request.color, iconBg: SEM.request.bg },
+  { title: "Expeditions", subtitle: "Toutes les demandes", to: "/admin/requests", icon: ICONS.package, iconColor: SEM.tracking.color, iconBg: SEM.tracking.bg },
+  { title: "Avis clients", subtitle: "Moderation", to: "/admin/reviews", icon: ICONS.star, iconColor: SEM.warning.color, iconBg: SEM.warning.bg },
+  { title: "Statistiques", subtitle: "Analyses detaillees", to: "/admin/stats", icon: ICONS.chart, iconColor: SEM.delivery.color, iconBg: SEM.delivery.bg },
 ];
 
 export default function Dashboard() {
@@ -152,179 +125,102 @@ export default function Dashboard() {
   const revenue = typeof dash?.totalRevenue === "number" ? dash.totalRevenue : 0;
 
   const kpis = [
-    { label: "Total demandes", value: total, icon: ICONS.package, grad: "linear-gradient(135deg,#3b82f6,#2563eb)" },
-    { label: "En attente", value: pending, icon: ICONS.clock, grad: "linear-gradient(135deg,#f59e0b,#d97706)" },
-    { label: "Acceptées", value: accepted, icon: ICONS.truck, grad: "linear-gradient(135deg,#22c55e,#15803d)" },
-    { label: "Livrées", value: delivered, icon: ICONS.check, grad: "linear-gradient(135deg,#8b5cf6,#6d28d9)" },
+    { label: "Total demandes", value: total, icon: ICONS.package, ...SEM.request },
+    { label: "En attente", value: pending, icon: ICONS.clock, ...SEM.warning },
+    { label: "Acceptees", value: accepted, icon: ICONS.truck, ...SEM.delivery },
+    { label: "Livrees", value: delivered, icon: ICONS.check, ...SEM.tracking },
   ];
 
   const recent = Array.isArray(dash?.recentRequests) ? dash.recentRequests.slice(0, 6) : [];
   const weekly = Array.isArray(dash?.weeklyRequests) ? dash.weeklyRequests : [];
 
+  const headerActions = (
+    <Link to="/admin/stats" className="dash-btn-primary">
+      <Icon d={ICONS.chart} size={15} color="#fff" />
+      Statistiques
+    </Link>
+  );
+
   return (
     <>
-      <link rel="preconnect" href="https://fonts.googleapis.com" />
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+      <PageHeader
+        sectionLabel="Administration"
+        title={`Bonjour, ${currentUser?.name?.split(" ")?.[0] || "Admin"}`}
+        subtitle="Vue d'ensemble de la plateforme"
+        actions={headerActions}
+      />
 
-      <style>{`
-        * { box-sizing: border-box; }
-        @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .admin-dash-fadeup { animation: fadeUp 0.5s ease forwards; }
-        .admin-kpi-card:hover { transform: translateY(-4px) scale(1.02); box-shadow: 0 20px 40px rgba(0,0,0,0.3) !important; }
-        .admin-kpi-card { transition: transform 0.25s ease, box-shadow 0.25s ease; }
-        .admin-action-btn:hover { transform: translateY(-3px); filter: brightness(1.1); box-shadow: 0 12px 24px rgba(0,0,0,0.35) !important; }
-        .admin-action-btn { transition: transform 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease; }
-        .admin-row-hover:hover { background: rgba(255,255,255,0.04) !important; }
-        .admin-row-hover { transition: background 0.15s; }
-        .admin-dash-bleed {
-          margin: -2rem 0 0 0;
-          padding: 2rem 0 3rem;
-          max-width: 100%;
-        }
-        .admin-kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
-        @media (max-width: 1100px) {
-          .admin-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-        }
-        @media (max-width: 520px) {
-          .admin-kpi-grid { grid-template-columns: 1fr !important; }
-        }
-        .admin-bottom-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 24px; }
-        @media (max-width: 1024px) {
-          .admin-bottom-grid { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
+      <div className="dash-stats-grid">
+        {kpis.map((k) => (
+          <StatCard
+            key={k.label}
+            label={k.label}
+            value={k.value}
+            icon={k.icon}
+            iconColor={k.color}
+            iconBg={k.bg}
+            loading={loading}
+          />
+        ))}
+      </div>
 
-      <div
-        className="admin-dash-bleed"
-        style={{
-          minHeight: "calc(100vh - 4rem)",
-          background: "linear-gradient(135deg,#0a0f1e 0%,#0f172a 40%,#0d1b2e 100%)",
-          fontFamily: "'Inter', sans-serif",
-          color: "#fff",
-          borderRadius: "0 0 24px 24px",
-        }}
-      >
-        <div className="admin-dash-fadeup" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 36, flexWrap: "wrap", gap: 16 }}>
-          <div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 4 }}>
-              {new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}
-            </div>
-            <h1 style={{ fontSize: 26, fontWeight: 800, color: "#fff", margin: 0 }}>
-              Bonjour, {currentUser?.name?.split(" ")?.[0] || "Admin"} 👋
-            </h1>
-           
+      <div className="dash-panel" style={{ marginBottom: 20 }}>
+        <p className="dash-panel-title">Revenus</p>
+        <h3 className="dash-panel-heading" style={{ marginBottom: 0 }}>
+          {loading ? "-" : `${revenue.toFixed(2)} DT`}
+        </h3>
+        <p className="dash-page-subtitle">Revenu plateforme (transporteurs)</p>
+      </div>
+
+      <div className="dash-grid">
+        <div className="dash-panel">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
+            <h3 className="dash-panel-heading" style={{ margin: 0 }}>
+              Demandes recentes
+            </h3>
+            <Link to="/admin/requests" className="dash-text-link">
+              Tout voir
+            </Link>
           </div>
-          <Link
-            to="/admin/stats"
-            className="admin-action-btn"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 20px",
-              borderRadius: 12,
-              fontSize: 13,
-              fontWeight: 600,
-              background: "linear-gradient(135deg,#7c3aed,#6d28d9)",
-              color: "#fff",
-              textDecoration: "none",
-              boxShadow: "0 4px 14px rgba(124,58,237,0.4)",
-            }}
-          >
-            <Icon d={ICONS.chart} size={15} color="#fff" />
-            Voir les statistiques
-          </Link>
-        </div>
-
-        <div className="admin-kpi-grid" style={{ marginBottom: 36 }}>
-          {kpis.map((k, i) => (
-            <div
-              key={k.label}
-              className="admin-kpi-card"
-              style={{
-                ...glass,
-                padding: "22px 24px",
-                animation: `fadeUp 0.5s ease ${i * 0.08}s both`,
-              }}
-            >
-              <div
-                style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: 12,
-                  background: k.grad,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginBottom: 14,
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                }}
-              >
-                <Icon d={k.icon} size={20} color="#fff" />
-              </div>
-              <div style={{ fontSize: 28, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{loading ? "—" : k.value}</div>
-              <div style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", marginTop: 5, fontWeight: 500 }}>{k.label}</div>
-            </div>
-          ))}
-        </div>
-
-        <div style={{ ...glass, padding: "18px 22px", marginBottom: 28, animation: "fadeUp 0.45s ease 0.2s both" }}>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>Revenu plateforme (transporteurs)</div>
-          <div style={{ fontSize: 24, fontWeight: 800 }}>
-            {loading ? "—" : `${revenue.toFixed(2)} DT`}
-          </div>
-        </div>
-
-        <div className="admin-bottom-grid">
-          <div style={{ ...glass, padding: "24px 28px", animation: "fadeUp 0.5s ease 0.28s both" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 22 }}>
-              <h2 style={{ fontSize: 15, fontWeight: 700, color: "#fff", margin: 0 }}>Demandes récentes</h2>
-              <Link to="/admin/requests" style={{ fontSize: 12, fontWeight: 600, color: "#a78bfa", textDecoration: "none" }}>
-                Tout voir →
-              </Link>
-            </div>
-            {loading ? (
-              <div style={{ textAlign: "center", padding: 40 }}>Chargement...</div>
-            ) : recent.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.3)" }}>Aucune demande</div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                {recent.map((r, i) => (
-                  <div key={r._id || i} className="admin-row-hover" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 8px", borderRadius: 10 }}>
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 600 }}>
-                        {r.pickupLocation || "—"} → {r.deliveryLocation || "—"}
-                      </div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>
-                        {r.createdAt ? new Date(r.createdAt).toLocaleDateString("fr-FR") : ""}
-                      </div>
+          {loading ? (
+            <div className="dash-empty">Chargement...</div>
+          ) : recent.length === 0 ? (
+            <div className="dash-empty">Aucune demande</div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+              {recent.map((r, i) => (
+                <div
+                  key={r._id || i}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "12px 8px",
+                    borderBottom: "1px solid var(--dash-border-subtle)",
+                  }}
+                >
+                  <div>
+                    <div className="dash-route">
+                      {r.pickupLocation || "-"} → {r.deliveryLocation || "-"}
                     </div>
-                    <StatusBadge status={r.status || "pending"} />
+                    <div className="dash-date">
+                      {r.createdAt ? new Date(r.createdAt).toLocaleDateString("fr-FR") : ""}
+                    </div>
                   </div>
-                ))}
-              </div>
-            )}
+                  <StatusBadge status={r.status || "pending"} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="dash-aside">
+          <div className="dash-panel">
+            <p className="dash-panel-title">Activite</p>
+            <h3 className="dash-panel-heading">7 derniers jours</h3>
+            <WeeklyActivityChart weekly={weekly} />
           </div>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            <div style={{ ...glass, padding: "22px 24px", animation: "fadeUp 0.5s ease 0.32s both" }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 16px" }}>Activité (7 jours)</h2>
-              <WeeklyActivityChart weekly={weekly} />
-            </div>
-            <div style={{ ...glass, padding: "22px 24px", animation: "fadeUp 0.5s ease 0.38s both" }}>
-              <h2 style={{ fontSize: 14, fontWeight: 700, margin: "0 0 14px" }}>Actions rapides</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                {QUICK_ACTIONS.map((a) => (
-                  <Link key={a.label} to={a.to} className="admin-action-btn" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 8, padding: "16px 10px", borderRadius: 14, background: a.grad, textDecoration: "none", color: "#fff", fontSize: 11, fontWeight: 600 }}>
-                    <Icon d={a.icon} size={20} />
-                    {a.label}
-                  </Link>
-                ))}
-              </div>
-            </div>
+          <div className="dash-panel">
+            <QuickActionsPanel actions={QUICK_ACTIONS} />
           </div>
         </div>
       </div>

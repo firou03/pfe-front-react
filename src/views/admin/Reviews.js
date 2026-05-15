@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import PageHeader from "components/dashboard/PageHeader";
 
 const Icon = ({ d, size = 16, color = "#fff" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -13,14 +14,6 @@ const ICONS = {
   x: "M6 18L18 6M6 6l12 12",
   trash: "M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16",
   refresh: "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15",
-};
-
-const glass = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.08)",
-  borderRadius: 20,
-  backdropFilter: "blur(20px)",
-  WebkitBackdropFilter: "blur(20px)",
 };
 
 const API_URL = "http://localhost:5000/api/reviews";
@@ -91,9 +84,9 @@ export default function Reviews() {
   const StarDisplay = ({ rating = 0 }) => (
     <span>
       {[1, 2, 3, 4, 5].map(i => (
-        <span key={i} style={{ color: i <= rating ? "#fbbf24" : "rgba(255,255,255,0.15)", fontSize: 14 }}>★</span>
+        <span key={i} style={{ color: i <= rating ? "#fbbf24" : "var(--dash-border)", fontSize: 14 }}>★</span>
       ))}
-      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginLeft: 6 }}>{rating}/5</span>
+      <span className="dash-date" style={{ marginLeft: 6 }}>{rating}/5</span>
     </span>
   );
 
@@ -102,26 +95,22 @@ export default function Reviews() {
     : "—";
 
   return (
-    <div style={{ minHeight: "100vh", background: "linear-gradient(135deg,#0a0f1e 0%,#0f172a 40%,#0d1b2e 100%)", fontFamily: "'Inter', sans-serif", color: "#fff", padding: "30px 40px" }}>
-      <header style={{ marginBottom: 30, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <div>
-          <h1 style={{ fontSize: 28, fontWeight: 800, margin: 0 }}>Gestion des Avis</h1>
-          <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: "8px 0 0 0" }}>
-            {loading ? "Chargement..." : `${reviews.length} avis • Note moyenne : ${avgRating}★`}
-          </p>
-        </div>
-        <button
-          onClick={fetchReviews}
-          style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 18px", background: "rgba(251,191,36,0.15)", border: "1px solid rgba(251,191,36,0.3)", borderRadius: 10, color: "#fbbf24", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-        >
-          <Icon d={ICONS.refresh} size={14} color="#fbbf24" /> Actualiser
-        </button>
-      </header>
+    <>
+      <PageHeader
+        sectionLabel="Administration"
+        title="Gestion des avis"
+        subtitle={
+          loading ? "Chargement..." : `${reviews.length} avis • Note moyenne : ${avgRating}★`
+        }
+        actions={
+          <button type="button" className="dash-btn-primary" onClick={fetchReviews}>
+            <Icon d={ICONS.refresh} size={14} /> Actualiser
+          </button>
+        }
+      />
 
       {error && (
-        <div style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", padding: 16, borderRadius: 12, marginBottom: 20, color: "#fca5a5" }}>
-          ⚠️ {error}
-        </div>
+        <div className="dash-alert-error">⚠️ {error}</div>
       )}
 
       {/* Stats bar */}
@@ -133,17 +122,17 @@ export default function Reviews() {
             { label: "Note moy.", value: `${avgRating}★`, color: "#22c55e" },
             { label: "Sans commentaire", value: reviews.filter(r => !r.comment).length, color: "#60a5fa" },
           ].map((s, i) => (
-            <div key={i} style={{ ...glass, padding: "14px 18px" }}>
+            <div key={i} className="dash-mini-stat">
               <div style={{ fontSize: 22, fontWeight: 800, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 4 }}>{s.label}</div>
+              <div className="dash-mini-stat-label">{s.label}</div>
             </div>
           ))}
         </div>
       )}
 
       {/* Filters */}
-      <div style={{ ...glass, padding: 20, marginBottom: 20 }}>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+      <div className="dash-panel" style={{ marginBottom: 20 }}>
+        <div className="dash-filters">
           {[
             { key: "all", label: "Tous" },
             { key: "pending", label: "En attente" },
@@ -152,17 +141,9 @@ export default function Reviews() {
           ].map(({ key, label }) => (
             <button
               key={key}
+              type="button"
+              className={`dash-filter-pill${typeFilter === key ? " active" : ""}`}
               onClick={() => setTypeFilter(key)}
-              style={{
-                padding: "8px 16px",
-                background: typeFilter === key ? "rgba(232,121,249,0.2)" : "rgba(255,255,255,0.05)",
-                border: "1px solid " + (typeFilter === key ? "rgba(232,121,249,0.3)" : "rgba(255,255,255,0.1)"),
-                borderRadius: 8,
-                color: typeFilter === key ? "#e879f9" : "rgba(255,255,255,0.5)",
-                cursor: "pointer",
-                fontSize: 12,
-                fontWeight: 600,
-              }}
             >
               {label}
             </button>
@@ -171,7 +152,7 @@ export default function Reviews() {
       </div>
 
       {/* Table */}
-      <div style={{ ...glass, padding: 24 }}>
+      <div className="dash-panel">
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
@@ -218,11 +199,12 @@ export default function Reviews() {
                     </td>
                     <td style={{ padding: "12px 8px" }}>
                       <button
+                        type="button"
+                        className="dash-btn-danger"
                         onClick={() => handleDelete(review._id)}
                         disabled={actionLoading === review._id}
-                        style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", padding: "5px 10px", borderRadius: 6, cursor: "pointer", color: "#ef4444", fontSize: 11, fontWeight: 600, opacity: actionLoading === review._id ? 0.5 : 1 }}
                       >
-                        <Icon d={ICONS.trash} size={12} color="#ef4444" /> Supprimer
+                        <Icon d={ICONS.trash} size={12} color="currentColor" /> Supprimer
                       </button>
                     </td>
                   </tr>
@@ -232,6 +214,6 @@ export default function Reviews() {
           </table>
         </div>
       </div>
-    </div>
+    </>
   );
 }

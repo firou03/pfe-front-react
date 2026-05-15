@@ -4,6 +4,7 @@ import { BrowserRouter, Route, Switch, Redirect } from "react-router-dom";
 
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "assets/styles/tailwind.css";
+import "assets/styles/dashboard.css";
 
 // layouts
 
@@ -22,6 +23,7 @@ import Index from "views/Index.js";
 import ColisTracking from "views/ColisTracking.js";
 import Chat from "views/Chat.js";
 import ClientDashboard from "views/ClientDashboard.js";
+import ClientPayments from "views/ClientPayments.js";
 import TransporteurDashboard from "views/TransporteurDashboard.js";
 import ResetPassword from "views/auth/ResetPassword.js";
 import { ThemeProvider } from "context/ThemeContext";
@@ -40,6 +42,7 @@ ReactDOM.render(
       <Route path="/client-requests" exact component={MesDemandesClient} />
       <Route path="/requests" exact component={AfficheRequest} />
       <Route path="/client" exact component={Client} />
+      <Route path="/client-payments" exact component={ClientPayments} />
 
       <Route path="/profile" exact component={Profile} />
       <Route path="/profile/client" exact component={Profile} />

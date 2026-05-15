@@ -32,67 +32,50 @@ export default function Forget() {
   };
 
   return (
-    <>
-      <div className="container mx-auto px-4 h-full">
-        <div className="flex content-center items-center justify-center h-full">
-          <div className="w-full lg:w-4/12 px-4">
-            <div className="relative flex flex-col min-w-0 break-words w-full mb-6 shadow-lg rounded-lg bg-blueGray-200 border-0">
-              <div className="flex-auto px-4 lg:px-10 py-10 pt-0">
-                <div className="text-blueGray-400 text-center mb-3 font-bold mt-4">
-                  <small>Mot de passe oublié</small>
-                </div>
-                {message && (
-                  <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span className="block sm:inline text-xs">{message}</span>
-                  </div>
-                )}
-                {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                    <span className="block sm:inline text-xs">{error}</span>
-                  </div>
-                )}
-                <form onSubmit={handleSubmit}>
-                  <div className="relative w-full mb-3 mt-4">
-                    <label className="block uppercase text-blueGray-600 text-xs font-bold mb-2">
-                      Email
-                    </label>
-                    <input
-                      type="email"
-                      className="border-0 px-3 py-3 placeholder-blueGray-300 text-blueGray-600 bg-white rounded text-sm shadow focus:outline-none focus:ring w-full ease-linear transition-all duration-150"
-                      placeholder="Email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      required
-                    />
-                  </div>
+    <div className="auth-card">
+      <h1>Mot de passe oublié</h1>
+      <p className="auth-sub">Recevez un lien de réinitialisation par email</p>
 
-                  <div className="text-center mt-6">
-                    <button
-                      className="bg-blueGray-800 text-white active:bg-blueGray-600 text-sm font-bold uppercase px-6 py-3 rounded shadow hover:shadow-lg outline-none focus:outline-none mr-1 mb-1 w-full ease-linear transition-all duration-150"
-                      type="submit"
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Envoi en cours..." : "Réinitialiser"}
-                    </button>
-                  </div>
-                </form>
-              </div>
-            </div>
-            <div className="flex flex-wrap mt-6 relative">
-              <div className="w-1/2">
-                <Link to="/auth/login" className="text-blueGray-200">
-                  <small>Se connecter</small>
-                </Link>
-              </div>
-              <div className="w-1/2 text-right">
-                <Link to="/auth/register" className="text-blueGray-200">
-                  <small>Créer un compte</small>
-                </Link>
-              </div>
-            </div>
-          </div>
+      {message && (
+        <p className="dash-date" style={{ color: "var(--semantic-delivery)", marginBottom: 12 }}>
+          {message}
+        </p>
+      )}
+      {error && (
+        <p className="dash-date" style={{ color: "var(--semantic-warning)", marginBottom: 12 }}>
+          {error}
+        </p>
+      )}
+
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: 16 }}>
+          <label className="dash-label" htmlFor="forget-email">
+            Email
+          </label>
+          <input
+            id="forget-email"
+            type="email"
+            className="dash-input"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
         </div>
+
+        <button type="submit" className="auth-btn" disabled={isSubmitting}>
+          {isSubmitting ? "Envoi en cours..." : "Réinitialiser"}
+        </button>
+      </form>
+
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 20 }}>
+        <Link to="/auth/login" className="auth-link">
+          Se connecter
+        </Link>
+        <Link to="/auth/register" className="auth-link">
+          Créer un compte
+        </Link>
       </div>
-    </>
+    </div>
   );
 }

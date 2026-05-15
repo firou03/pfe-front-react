@@ -1,39 +1,27 @@
 import React from "react";
-import { Switch, Route, Redirect } from "react-router-dom";
-
-// components
-
-import Navbar from "components/Navbars/AuthNavbar.js";
-import FooterSmall from "components/Footers/FooterSmall.js";
-
-// views
-
+import { Link, Switch, Route, Redirect } from "react-router-dom";
+import ThemeToggle from "components/dashboard/ThemeToggle";
 import Login from "views/auth/Login.js";
 import forget from "views/auth/forget";
 import Register from "views/auth/Register.js";
 
 export default function Auth() {
   return (
-    <>
-      <Navbar transparent />
-      <main>
-        <section className="relative w-full h-full py-40 min-h-screen">
-          <div
-            className="absolute top-0 w-full h-full bg-blueGray-800 bg-no-repeat bg-full"
-            style={{
-              backgroundImage:
-                "url(" + require("assets/img/register_bg_2.png").default + ")",
-            }}
-          ></div>
-          <Switch>
+    <div className="auth-shell">
+      <header className="auth-nav">
+        <Link to="/" className="auth-nav-brand">
+          TransportTN
+        </Link>
+        <ThemeToggle />
+      </header>
+      <main className="auth-main">
+        <Switch>
           <Route path="/auth/login" exact component={Login} />
           <Route path="/auth/forget" exact component={forget} />
           <Route path="/auth/register" exact component={Register} />
-            <Redirect from="/auth" to="/auth/login" />
-          </Switch>
-          <FooterSmall absolute />
-        </section>
+          <Redirect from="/auth" to="/auth/login" />
+        </Switch>
       </main>
-    </>
+    </div>
   );
 }

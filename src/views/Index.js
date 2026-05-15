@@ -16,14 +16,14 @@ export default function Index() {
           {/* Left */}
           <div style={{ flex: 1 }}>
             {/* Badge */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, fontSize: 12, background: "#e6f1fb", color: "#185FA5", border: "0.5px solid #b5d4f4", marginBottom: 20 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#185FA5", display: "inline-block" }} />
+            <div className="landing-hero-badge" style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, fontSize: 12, border: "1px solid", marginBottom: 20 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6d28d9", display: "inline-block" }} />
               Plateforme de transport intelligente
             </div>
 
             <h1 style={{ fontSize: 38, fontWeight: 500, lineHeight: 1.2, color: "#0f172a", marginBottom: 16 }}>
               La livraison en Tunisie,{" "}
-              <span style={{ color: "#378ADD" }}>réinventée.</span>
+              <span className="landing-accent">réinventée.</span>
             </h1>
 
             <p style={{ fontSize: 15, color: "#64748b", lineHeight: 1.7, marginBottom: 32, maxWidth: 460 }}>
@@ -31,7 +31,7 @@ export default function Index() {
             </p>
 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 40 }}>
-              <Link to="/auth/register" style={{ padding: "11px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, background: "#378ADD", color: "#fff", textDecoration: "none" }}>
+              <Link to="/auth/register" className="landing-cta-primary" style={{ padding: "11px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, color: "#fff", textDecoration: "none" }}>
                 S'inscrire gratuitement
               </Link>
               <Link to="/auth/login" style={{ padding: "11px 24px", borderRadius: 8, fontSize: 14, fontWeight: 500, background: "transparent", border: "0.5px solid #cbd5e1", color: "#475569", textDecoration: "none" }}>
